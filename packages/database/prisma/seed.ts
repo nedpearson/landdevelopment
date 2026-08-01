@@ -415,7 +415,7 @@ async function main() {
       approvedAt: new Date('2026-07-28T14:30:00Z'),
       sentAt: new Date('2026-07-28T16:00:00Z'),
       expiresAt: new Date('2026-08-08T23:59:59Z'),
-      esignatureStatus: 'DELIVERED',
+      eSignatureStatus: 'DELIVERED',
     },
   });
 
