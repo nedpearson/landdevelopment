@@ -72,11 +72,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="p-4 border-b border-slate-800/80 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-amber-400 flex items-center justify-center font-bold text-white shadow-lg shadow-emerald-950/50">
-                  LI
+                  PD
                 </div>
                 <div>
-                  <h1 className="font-bold text-slate-100 text-sm tracking-tight">Land Intelligence OS</h1>
-                  <p className="text-[10px] text-emerald-400 font-mono uppercase tracking-wider">Dual-Mode v2.0</p>
+                  <h1 className="font-bold text-slate-100 text-sm tracking-tight">Pearson Developments</h1>
+                  <p className="text-[10px] text-emerald-400 font-mono uppercase tracking-wider">Land & Energy OS v2.0</p>
                 </div>
               </div>
 
@@ -115,7 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* User & Org Workspace Footer */}
           <div className="p-4 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between text-xs">
             <div className="truncate">
-              <p className="text-slate-200 font-medium truncate">Apex Energy & Land Capital</p>
+              <p className="text-slate-200 font-medium truncate">Pearson Developments Workspace</p>
               <p className="text-[10px] text-slate-400">Client: Pioneer Natural Resources</p>
             </div>
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
@@ -131,7 +131,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   ? 'bg-amber-950/80 border-amber-800/60 text-amber-300'
                   : 'bg-emerald-950/80 border-emerald-800/60 text-emerald-300'
               }`}>
-                {landmanMode ? 'LANDMAN & ENERGY OPERATIONS' : 'LAND INVESTMENT'}
+                {landmanMode ? 'PEARSON DEVELOPMENTS — LANDMAN OPERATIONS' : 'PEARSON DEVELOPMENTS — LAND INVESTMENT'}
               </span>
               <span className="text-xs text-slate-400">Target Region: Costilla CO & Permian Basin TX</span>
             </div>

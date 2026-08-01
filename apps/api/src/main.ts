@@ -17,8 +17,8 @@ app.get('/api/v1/health', async (req: Request, res: Response) => {
   const providerHealth = await parcelProvider.healthCheck();
   res.json({
     status: 'ok',
-    system: 'Land Intelligence OS API Server (Dual-Mode Operating System)',
-    version: '2.0.0-landman-expansion',
+    system: 'Pearson Developments Platform API Server',
+    version: '2.0.0-pearson-developments',
     operatingModes: ['LAND_INVESTMENT_MODE', 'LANDMAN_OPERATIONS_MODE'],
     timestamp: new Date().toISOString(),
     provider: providerHealth,
@@ -161,7 +161,7 @@ app.post('/api/v1/landman/ownership/calculate', (req: Request, res: Response) =>
 app.post('/api/v1/ai/command', async (req: Request, res: Response) => {
   const { prompt, organizationId, propertyId } = req.body;
   const result = await aiGateway.execute({
-    systemPrompt: 'You are Land Intelligence OS Grounded AI Assistant (Land Investment & Landman Operations).',
+    systemPrompt: 'You are Pearson Developments Grounded AI Assistant (Land Investment & Landman Operations).',
     userPrompt: prompt || 'Show deal scores and mineral tract title gaps',
     organizationId: organizationId || 'org-demo',
     userId: 'usr-1',
@@ -176,5 +176,5 @@ app.get('/api/v1/lifecycle/stages', (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`[Land Intelligence OS API] Dual-Mode Server listening on http://localhost:${port}`);
+  console.log(`[Pearson Developments API] Listening on http://localhost:${port}`);
 });

@@ -9,7 +9,7 @@ export default function App() {
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>Land Intelligence OS</Text>
+            <Text style={styles.headerTitle}>Pearson Developments</Text>
             <Text style={styles.headerSubtitle}>Field Operations & Offline Mobile App</Text>
           </View>
 
