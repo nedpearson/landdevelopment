@@ -1,152 +1,168 @@
 'use client';
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
-import { FolderKanban, Plus, Building, Users, Target, ShieldCheck } from 'lucide-react';
-import Link from 'next/link';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
+import { FolderKanban, Plus, Briefcase, MapPin, DollarSign, Users, ChevronRight, Filter } from 'lucide-react';
 
 export default function ProjectsPage() {
+  const [selectedProject, setSelectedProject] = useState<string | null>('prj-101');
+
+  const projects = [
+    {
+      id: 'prj-101',
+      projectName: 'Permian Basin Wolfcamp Prospect',
+      clientName: 'Pioneer Natural Resources',
+      projectType: 'MINERAL_ACQUISITION',
+      state: 'TX',
+      county: 'Reeves',
+      targetGrossAcres: 5000,
+      targetNetMineralAcres: 1250,
+      budgetUsd: 5000000,
+      spentUsd: 1450000,
+      status: 'ACTIVE',
+      tractsCount: 18,
+      runsheetsCount: 14,
+      curativeCount: 3,
+    },
+    {
+      id: 'prj-102',
+      projectName: 'Costilla Solar Array Phase 1',
+      clientName: 'NextEra Energy Resources',
+      projectType: 'SOLAR_DEVELOPMENT',
+      state: 'CO',
+      county: 'Costilla',
+      targetGrossAcres: 800,
+      targetNetMineralAcres: 800,
+      budgetUsd: 1200000,
+      spentUsd: 320000,
+      status: 'ACTIVE',
+      tractsCount: 6,
+      runsheetsCount: 6,
+      curativeCount: 1,
+    },
+    {
+      id: 'prj-103',
+      projectName: 'Delaware Gas Gathering Pipeline ROW',
+      clientName: 'Enterprise Products Partners',
+      projectType: 'RIGHT_OF_WAY',
+      state: 'TX',
+      county: 'Loving',
+      targetGrossAcres: 350,
+      targetNetMineralAcres: 350,
+      budgetUsd: 850000,
+      spentUsd: 410000,
+      status: 'ACTIVE',
+      tractsCount: 12,
+      runsheetsCount: 10,
+      curativeCount: 2,
+    },
+  ];
+
+  const activeProject = projects.find((p) => p.id === selectedProject) || projects[0];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Executive Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <FolderKanban className="w-5 h-5 text-amber-400" /> Landman Projects & Client Administration
+            <FolderKanban className="w-5 h-5 text-amber-400" /> Landman Projects & Client Accounts
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Manage mineral, title, leasehold, ROW, and renewable energy client projects across target basins and counties.
+            Manage acquisition projects, client budgets, tract packages, runsheets, and landman authority caps.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm" icon={<Plus className="w-3.5 h-3.5" />}>
+          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>
             Create New Project
           </Button>
         </div>
       </div>
 
-      {/* Project Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Project 1 */}
-        <Card className="border-amber-900/40 bg-slate-900">
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between items-start">
+      {/* Projects Grid & Deep Drill-Down Detail Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left List */}
+        <div className="space-y-4">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Client Projects ({projects.length})</h2>
+          {projects.map((p) => (
+            <Card
+              key={p.id}
+              onClick={() => setSelectedProject(p.id)}
+              className={`cursor-pointer transition-all ${
+                selectedProject === p.id
+                  ? 'border-amber-500/80 bg-slate-900 shadow-xl ring-1 ring-amber-500/30'
+                  : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-sm">{p.projectName}</h3>
+                  <p className="text-xs text-amber-400 mt-0.5">{p.clientName}</p>
+                </div>
+                <Badge variant={p.projectType === 'MINERAL_ACQUISITION' ? 'warning' : 'info'}>
+                  {p.projectType.replace('_', ' ')}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-800 text-[11px] font-mono text-slate-300">
+                <div>
+                  <span className="text-slate-500 uppercase text-[9px]">Location</span>
+                  <p className="font-semibold text-slate-200">{p.county} Co, {p.state}</p>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase text-[9px]">Target NMA</span>
+                  <p className="font-semibold text-amber-300">{p.targetNetMineralAcres} NMA</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Right Detail Panel */}
+        <div className="lg:col-span-2 space-y-4">
+          <Card className="border-amber-900/40 bg-slate-900">
+            <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <Badge variant="warning">MINERAL ACQUISITION</Badge>
-                <h3 className="font-bold text-white text-base mt-1">Permian Basin Wolfcamp Prospect</h3>
-                <p className="text-slate-400">Client: Pioneer Natural Resources (Ref: #PNR-2026-W)</p>
+                <CardTitle className="text-white text-lg">{activeProject.projectName}</CardTitle>
+                <CardDescription>Client: {activeProject.clientName} | Region: {activeProject.county} County, {activeProject.state}</CardDescription>
+              </div>
+              <Badge variant="success">STATUS: ACTIVE</Badge>
+            </CardHeader>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 text-[10px] uppercase font-semibold">Total Budget</span>
+                <p className="text-base font-bold text-white mt-1">${activeProject.budgetUsd.toLocaleString()}</p>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 text-[10px] uppercase font-semibold">Capital Deployed</span>
+                <p className="text-base font-bold text-emerald-400 mt-1">${activeProject.spentUsd.toLocaleString()}</p>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 text-[10px] uppercase font-semibold">Target NMA</span>
+                <p className="text-base font-bold text-amber-300 mt-1">{activeProject.targetNetMineralAcres} NMA</p>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="text-slate-500 text-[10px] uppercase font-semibold">Tract Package</span>
+                <p className="text-base font-bold text-purple-300 mt-1">{activeProject.tractsCount} Tracts</p>
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5 font-mono text-[11px]">
-              <div className="flex justify-between text-slate-300">
-                <span>Target Region:</span>
-                <span>Reeves & Midland County, TX</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Target Net Mineral Acres:</span>
-                <span className="font-bold text-amber-300">1,250.00 NMA</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Max Bonus Authority:</span>
-                <span>$4,500 / NMA</span>
-              </div>
-              <div className="flex justify-between text-emerald-400">
-                <span>Leased / Acquired NMA:</span>
-                <span>842.50 NMA (67.4%)</span>
-              </div>
+            <div className="mt-4">
+              <EvidenceBox
+                source="Project Client Engagement Authorization Agreement"
+                retrievedAt={new Date().toISOString()}
+                confidenceScore={98}
+                verificationState="ATTORNEY_VERIFIED"
+                assumptions={['Authority cap max $4,500/NMA bonus', 'Royalty cap max 25% (1/4th)']}
+              >
+                <p className="text-xs text-slate-300">
+                  Client Mandate Provenance: Pioneer Natural Resources has authorized Pearson Developments to acquire up to 1,250 NMA in the Wolfcamp formation with a maximum bonus authority of $4,500/NMA.
+                </p>
+              </EvidenceBox>
             </div>
-
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <Link href="/tracts">
-                <Button variant="outline" size="sm">
-                  View Assigned Tracts
-                </Button>
-              </Link>
-              <Link href="/runsheets">
-                <Button variant="primary" size="sm">
-                  Title Runsheets
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Card>
-
-        {/* Project 2 */}
-        <Card className="border-slate-800 bg-slate-900">
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between items-start">
-              <div>
-                <Badge variant="info">SOLAR SITE CONTROL</Badge>
-                <h3 className="font-bold text-white text-base mt-1">Costilla Solar Array Phase 1</h3>
-                <p className="text-slate-400">Client: NextEra Energy Resources</p>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5 font-mono text-[11px]">
-              <div className="flex justify-between text-slate-300">
-                <span>Target Region:</span>
-                <span>Costilla County, CO</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Target Contiguous Acres:</span>
-                <span className="font-bold text-emerald-400">800.00 AC</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Option Rent Authority:</span>
-                <span>$45.00 / AC / Yr</span>
-              </div>
-              <div className="flex justify-between text-amber-300">
-                <span>Site Control Controlled:</span>
-                <span>640.00 AC (80.0%)</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <Link href="/renewables">
-                <Button variant="outline" size="sm">
-                  Renewable Workspace
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Card>
-
-        {/* Project 3 */}
-        <Card className="border-slate-800 bg-slate-900">
-          <div className="space-y-3 text-xs">
-            <div className="flex justify-between items-start">
-              <div>
-                <Badge variant="success">RIGHT-OF-WAY PIPELINE</Badge>
-                <h3 className="font-bold text-white text-base mt-1">Eagle Ford Lateral Pipeline ROW</h3>
-                <p className="text-slate-400">Client: Kinder Morgan Midstream</p>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5 font-mono text-[11px]">
-              <div className="flex justify-between text-slate-300">
-                <span>Total Corridor Length:</span>
-                <span>480.0 Rods (1.5 mi)</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Max Price / Rod:</span>
-                <span>$250.00 / Rod</span>
-              </div>
-              <div className="flex justify-between text-emerald-400">
-                <span>Easements Signed:</span>
-                <span>12 / 14 Tracts (85.7%)</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <Link href="/row">
-                <Button variant="outline" size="sm">
-                  ROW Corridor
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );

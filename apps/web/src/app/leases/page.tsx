@@ -1,120 +1,93 @@
 'use client';
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, FractionBadge, EvidenceBox } from '@land-intelligence/ui';
-import { FileCheck, ShieldCheck, AlertTriangle, Clock, Activity, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
+import { FileCheck, ShieldCheck, CheckCircle2, Clock, Layers } from 'lucide-react';
 
 export default function LeasesPage() {
+  const leases = [
+    {
+      id: 'lse-101',
+      leaseName: 'Miller 14-A Oil & Gas Lease',
+      lessor: 'Estate of Henry T. Miller',
+      lessee: 'Pioneer Natural Resources',
+      leaseDate: '2021-03-15',
+      primaryTermYears: 3,
+      royaltyFraction: '1/5th (20.0%)',
+      grossAcres: 160.0,
+      pughClause: 'Vertical & Horizontal Pugh Clause Attached',
+      hbpStatus: 'HBP_PRODUCING',
+      producingWell: 'Miller 14-1H (API #42-389-34102)',
+      dailyProduction: '1,240 BOEPD',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <FileCheck className="w-5 h-5 text-amber-400" /> Lease Administration & Held-By-Production (HBP) Analysis
+            <FileCheck className="w-5 h-5 text-amber-400" /> Leases & Held-By-Production (HBP) Workspace
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Manage oil & gas, solar, wind, ground, and ROW leases. Track Pugh clauses, expirations, and HBP evidence chains.
+            Oil & Gas Lease administration, primary/secondary terms, Pugh clauses, shut-in provisions, and production evidence chains.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm">
-            Add Lease Record
-          </Button>
-        </div>
+        <Badge variant="success">1 Active Producing Lease</Badge>
       </div>
 
-      {/* Lease Workspace Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Active Lease Administration Table */}
-        <div className="lg:col-span-8 space-y-4">
-          <Card className="border-slate-800 bg-slate-900">
-            <CardHeader>
-              <CardTitle>Active Leasehold Records</CardTitle>
-              <CardDescription>Lease terms, royalty, Pugh clauses, and expiration tracking</CardDescription>
-            </CardHeader>
+      {/* Leases Table */}
+      <Card className="border-slate-800 bg-slate-900">
+        <CardHeader>
+          <CardTitle>Active Lease Directory</CardTitle>
+          <CardDescription>Lessor/Lessee details, royalty rate, Pugh clause status, and producing well evidence</CardDescription>
+        </CardHeader>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left text-slate-300">
-                <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
-                  <tr>
-                    <th className="p-3">Lease #</th>
-                    <th className="p-3">Lessor</th>
-                    <th className="p-3">Lessee</th>
-                    <th className="p-3">Royalty</th>
-                    <th className="p-3">Primary Term</th>
-                    <th className="p-3">Pugh Clause</th>
-                    <th className="p-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
-                  <tr>
-                    <td className="p-3 font-semibold text-white">OG-2026-104</td>
-                    <td className="p-3">Miller Family Trust</td>
-                    <td className="p-3 text-slate-300">Apex Energy Corp</td>
-                    <td className="p-3">
-                      <FractionBadge fraction={{ numerator: 1, denominator: 5 }} label="Royalty" />
-                    </td>
-                    <td className="p-3">3 Years (Exp: 2029)</td>
-                    <td className="p-3">
-                      <Badge variant="success">YES (Vertical & Horiz)</Badge>
-                    </td>
-                    <td className="p-3">
-                      <Badge variant="info">ACTIVE LEASE</Badge>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td className="p-3 font-semibold text-white">SOLAR-2026-88</td>
-                    <td className="p-3">Costilla Ranch LLC</td>
-                    <td className="p-3 text-slate-300">NextEra Solar LLC</td>
-                    <td className="p-3">$45/AC/Yr</td>
-                    <td className="p-3">5 Yr Option / 30 Yr Lease</td>
-                    <td className="p-3 text-slate-500">N/A</td>
-                    <td className="p-3">
-                      <Badge variant="warning">OPTION PERIOD</Badge>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </Card>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left text-slate-300">
+            <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
+              <tr>
+                <th className="p-3">Lease Name</th>
+                <th className="p-3">Lessor</th>
+                <th className="p-3">Lessee</th>
+                <th className="p-3">Royalty</th>
+                <th className="p-3">Pugh Clause</th>
+                <th className="p-3">HBP Status</th>
+                <th className="p-3">Producing Well</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 font-mono">
+              {leases.map((l) => (
+                <tr key={l.id} className="hover:bg-slate-800/40">
+                  <td className="p-3 font-bold text-amber-400">{l.leaseName}</td>
+                  <td className="p-3 text-slate-200">{l.lessor}</td>
+                  <td className="p-3 text-white font-semibold">{l.lessee}</td>
+                  <td className="p-3 text-emerald-400 font-bold">{l.royaltyFraction}</td>
+                  <td className="p-3 text-slate-300">{l.pughClause}</td>
+                  <td className="p-3">
+                    <Badge variant="success font-mono">{l.hbpStatus}</Badge>
+                  </td>
+                  <td className="p-3 text-purple-300 font-semibold">{l.producingWell}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* HBP Evidence Chain Sidebar */}
-        <div className="lg:col-span-4 space-y-4">
-          <Card className="border-emerald-900/40 bg-slate-900">
-            <CardHeader>
-              <CardTitle className="text-emerald-400 flex items-center gap-2">
-                <Activity className="w-4 h-4" /> HBP Evidence Chain Analyzer
-              </CardTitle>
-              <CardDescription>Verified evidence chain linking Lease -&gt; Unit -&gt; Well -&gt; Production</CardDescription>
-            </CardHeader>
-
-            <EvidenceBox
-              source="Texas Railroad Commission (RRC) & Permian Unit Operator Feed"
-              retrievedAt={new Date().toISOString()}
-              confidenceScore={96}
-              verificationState="ATTORNEY_VERIFIED"
-              assumptions={['Unit pooling order #RRC-88492 active', 'Producing well Wolfcamp 1H active']}
-            >
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-2 text-slate-200">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span><strong>Well:</strong> Wolfcamp Unit 1H (API #42-389-32104)</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-200">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span><strong>Monthly Production:</strong> 12,450 BOE / mo</span>
-                </div>
-                <div className="flex items-center gap-2 text-emerald-300 font-semibold pt-1">
-                  <span>Conclusion: Confirmed HBP (Held By Production)</span>
-                </div>
-              </div>
-            </EvidenceBox>
-          </Card>
+        <div className="p-4">
+          <EvidenceBox
+            source="Texas Railroad Commission (RRC) Production Reports & Well API #42-389-34102"
+            retrievedAt={new Date().toISOString()}
+            confidenceScore={99}
+            verificationState="ATTORNEY_VERIFIED"
+          >
+            <p className="text-xs text-slate-300">
+              HBP Evidence Chain Provenance: Miller 14-1H has produced continuously for 34 consecutive months (1,240 BOEPD average), legally maintaining the 160-acre leasehold past primary expiration date under Texas habendum clause case law.
+            </p>
+          </EvidenceBox>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

@@ -1,83 +1,80 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
-import { Sun, Wind, Battery, Zap, ShieldCheck, CheckCircle2, MapPin } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
+import { Sun, Plus, Zap, MapPin, Layers } from 'lucide-react';
 
 export default function RenewablesPage() {
+  const projects = [
+    {
+      id: 'ren-1',
+      projectName: 'Costilla Solar Array Phase 1',
+      developer: 'NextEra Energy Resources',
+      projectType: 'SOLAR_PLUS_STORAGE',
+      targetAcres: 800.0,
+      optionFeePerAcre: 50.0,
+      leaseFeePerAcre: 850.0,
+      interconnectStatus: 'QUEUE_POSITION_APPROVED',
+      substationDistanceMiles: 1.8,
+      status: 'OPTION_AGREEMENT_ACTIVE',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Sun className="w-5 h-5 text-amber-400" /> Renewable Energy Site Control & Land Assemblage
+            <Sun className="w-5 h-5 text-amber-400" /> Renewable Energy Site Control (Solar, Wind & Storage)
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Site control administration for solar, wind, battery storage, carbon capture, and pore-space projects.
+            Solar, wind, battery storage, and carbon capture acreage assemblage, option terms, and interconnect proximity.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm">
-            Add Renewable Site
+          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>
+            Add Renewable Project
           </Button>
         </div>
       </div>
 
-      {/* Renewable Project Status Overview */}
-      <Card className="border-amber-900/40 bg-slate-900">
+      {/* Renewables Table */}
+      <Card className="border-slate-800 bg-slate-900">
         <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-white">Costilla Solar Array Phase 1 (800 AC Target)</CardTitle>
-                <Badge variant="success">80.0% Site Control Controlled</Badge>
-              </div>
-              <CardDescription>Interconnection: San Luis 115kV Substation (1.2 miles distance)</CardDescription>
-            </div>
-            <Badge variant="info" className="font-mono">OPTION TERM: 5 YEARS ($45/AC/YR)</Badge>
-          </div>
+          <CardTitle>Active Renewable Site Control Projects</CardTitle>
+          <CardDescription>Target acreage, option rate/ac, commercial lease rate/ac, interconnect status, and distance to substation</CardDescription>
         </CardHeader>
 
-        {/* Site Control Progress Bar */}
-        <div className="space-y-2 text-xs">
-          <div className="flex justify-between text-slate-300">
-            <span>Contiguous Acreage Controlled:</span>
-            <span className="font-bold text-emerald-400">640.00 / 800.00 Acres</span>
-          </div>
-          <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
-            <div className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full w-[80%]" />
-          </div>
-        </div>
-
-        {/* Land Assemblage Tract Table */}
-        <div className="mt-4 border-t border-slate-800/80 pt-3">
+        <div className="overflow-x-auto">
           <table className="w-full text-xs text-left text-slate-300">
             <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
               <tr>
-                <th className="p-2.5">Parcel / APN</th>
-                <th className="p-2.5">Landowner</th>
-                <th className="p-2.5">Acreage</th>
-                <th className="p-2.5">Agreement Type</th>
-                <th className="p-2.5">Option Rent / Yr</th>
-                <th className="p-2.5">Severed Minerals Risk</th>
-                <th className="p-2.5">Status</th>
+                <th className="p-3">Project Name</th>
+                <th className="p-3">Developer</th>
+                <th className="p-3">Project Type</th>
+                <th className="p-3">Target Acres</th>
+                <th className="p-3">Option Rate</th>
+                <th className="p-3">Lease Rate</th>
+                <th className="p-3">Substation Dist</th>
+                <th className="p-3">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
-              <tr>
-                <td className="p-2.5 font-semibold text-white">APN: 123-456-789</td>
-                <td className="p-2.5">Robert & Elena Vance</td>
-                <td className="p-2.5">160.00 AC</td>
-                <td className="p-2.5 text-amber-300">Solar Ground Lease Option</td>
-                <td className="p-2.5 text-emerald-400">$7,200 / yr</td>
-                <td className="p-2.5">
-                  <Badge variant="warning">MINERAL SUBORDINATION REQ</Badge>
-                </td>
-                <td className="p-2.5">
-                  <Badge variant="success">OPTION EXECUTED</Badge>
-                </td>
-              </tr>
+              {projects.map((p) => (
+                <tr key={p.id} className="hover:bg-slate-800/40">
+                  <td className="p-3 font-bold text-amber-400">{p.projectName}</td>
+                  <td className="p-3 text-slate-200">{p.developer}</td>
+                  <td className="p-3 font-semibold text-white">{p.projectType.replace('_', ' ')}</td>
+                  <td className="p-3 text-white">{p.targetAcres} AC</td>
+                  <td className="p-3 text-emerald-400 font-bold">${p.optionFeePerAcre.toFixed(2)} / AC / yr</td>
+                  <td className="p-3 text-emerald-400 font-bold">${p.leaseFeePerAcre.toFixed(2)} / AC / yr</td>
+                  <td className="p-3 text-purple-300">{p.substationDistanceMiles} mi</td>
+                  <td className="p-3">
+                    <Badge variant="success font-mono">{p.status}</Badge>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
