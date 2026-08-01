@@ -5,7 +5,9 @@
     "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @land-intelligence/database run db:generate && pnpm build && mkdir -p apps/web/.next/standalone/apps/web/.next && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ && mkdir -p apps/web/.next/standalone/.next && cp -r apps/web/.next/static apps/web/.next/standalone/.next/"
   },
   "deploy": {
-    "startCommand": "HOSTNAME=0.0.0.0 node apps/web/.next/standalone/apps/web/server.js",
+    "startCommand": "HOSTNAME=0.0.0.0 PORT=$PORT node apps/web/.next/standalone/apps/web/server.js",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
