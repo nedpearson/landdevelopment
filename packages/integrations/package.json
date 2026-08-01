@@ -1,0 +1,12 @@
+{
+  "name": "@land-intelligence/integrations",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@land-intelligence/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
