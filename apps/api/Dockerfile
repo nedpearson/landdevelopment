@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for Express API Server in pnpm Monorepo
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@11.0.8 --activate
 
 # Stage 1: Install dependencies
