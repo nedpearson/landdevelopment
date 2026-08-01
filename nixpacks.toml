@@ -10,4 +10,4 @@ cmds = ["pnpm install --no-frozen-lockfile"]
 cmds = ["pnpm --filter @land-intelligence/database run db:generate", "pnpm build"]
 
 [start]
-cmd = "pnpm --filter @land-intelligence/database run db:deploy && pnpm --filter @land-intelligence/web start"
+cmd = "pnpm --filter @land-intelligence/web start"
