@@ -1,6 +1,15 @@
 import React from 'react';
 import { cn } from '../utils/cn';
-import { RationalFraction, rationalToDecimal } from '@land-intelligence/domain';
+
+export interface RationalFraction {
+  numerator: number;
+  denominator: number;
+}
+
+export function rationalToDecimal(f: RationalFraction): number {
+  if (f.denominator === 0) return 0;
+  return f.numerator / f.denominator;
+}
 
 export interface FractionBadgeProps {
   fraction: RationalFraction;

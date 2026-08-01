@@ -4,6 +4,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
+    "@land-intelligence/domain": "workspace:*",
     "clsx": "^2.1.1",
     "lucide-react": "^0.380.0",
     "react": "^18.3.1",
