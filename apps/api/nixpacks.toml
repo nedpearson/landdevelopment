@@ -1,0 +1,17 @@
+[providers]
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs-20_x", "pnpm-9_x", "openssl"]
+
+[phases.install]
+cmds = ["pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = [
+  "pnpm --filter @land-intelligence/database run db:generate",
+  "pnpm --filter @land-intelligence/api build"
+]
+
+[start]
+cmd = "pnpm --filter @land-intelligence/api start"

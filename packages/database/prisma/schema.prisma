@@ -1,0 +1,385 @@
+// Land Investment OS - Prisma ORM Schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis(schema: "extensions"), uuidOssp(map: "uuid-ossp", schema: "extensions")]
+}
+
+enum PropertyLifecycleStage {
+  MARKET_DISCOVERY
+  PARCEL_DISCOVERY
+  PROSPECT
+  CONTACTED
+  QUALIFIED
+  UNDERWRITING
+  DUE_DILIGENCE
+  OFFER_DRAFTED
+  OFFER_SENT
+  NEGOTIATION
+  CONTRACTED
+  CLOSING
+  OWNED
+  LISTED
+  UNDER_CONTRACT_DISPOSITION
+  SOLD
+  ARCHIVED
+}
+
+enum OfferStatus {
+  DRAFT
+  AWAITING_APPROVAL
+  APPROVED
+  SENT
+  ACCEPTED
+  REJECTED
+  COUNTERED
+  EXPIRED
+}
+
+enum ESignatureStatus {
+  NOT_SENT
+  SENT
+  DELIVERED
+  SIGNED
+  DECLINED
+}
+
+enum DiligenceCategory {
+  TITLE_OWNERSHIP
+  TAXES_LIENS
+  LEGAL_ACCESS
+  ZONING_RESTRICTIONS
+  ENVIRONMENTAL_FLOOD
+  UTILITIES_SEPTIC
+  SURVEY_BOUNDARIES
+  HOA_POA_FEES
+  CLOSING_REQUIREMENTS
+}
+
+enum DiligenceStatus {
+  PENDING
+  IN_PROGRESS
+  VERIFIED
+  FAILED_BLOCKER
+  EXEMPT
+}
+
+enum SellerMotivationLevel {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PortfolioHoldingStatus {
+  OWNED
+  LISTED
+  UNDER_CONTRACT
+  SOLD
+}
+
+enum NoteStatus {
+  ACTIVE
+  PAID_IN_FULL
+  DELINQUENT
+  DEFAULTED
+}
+
+enum CommunicationChannel {
+  EMAIL
+  SMS
+  PHONE
+  DIRECT_MAIL
+}
+
+enum CommunicationDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CommunicationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+  RECEIVED
+}
+
+model Property {
+  id               String                 @id @default(uuid()) @db.Uuid
+  organizationId   String                 @default("org_default") @map("organization_id")
+  apn              String
+  county           String
+  state            String
+  address          String?
+  zipCode          String?                @map("zip_code")
+  legalDescription String?                @map("legal_description")
+  acreage          Float
+  usableAcreage    Float                  @map("usable_acreage")
+  lifecycleStage   PropertyLifecycleStage @default(PROSPECT) @map("lifecycle_stage")
+
+  // Owner Details
+  ownerName            String  @map("owner_name")
+  mailingAddress       String? @map("mailing_address")
+  mailingCityStateZip  String? @map("mailing_city_state_zip")
+  absenteeOwner        Boolean @default(false) @map("absentee_owner")
+  corporateOwner       Boolean @default(false) @map("corporate_owner")
+  taxDelinquent        Boolean @default(false) @map("tax_delinquent")
+  delinquentAmount     Float?  @map("delinquent_amount")
+  ownershipLengthYears Float?  @map("ownership_length_years")
+
+  // JSON Assessments
+  accessAssessment        Json @default("{}") @map("access_assessment")
+  zoningAssessment        Json @default("{}") @map("zoning_assessment")
+  environmentalAssessment Json @default("{}") @map("environmental_assessment")
+  utilityAssessment       Json @default("{}") @map("utility_assessment")
+
+  // Geospatial Data
+  centroidLat Float? @map("centroid_lat")
+  centroidLng Float? @map("centroid_lng")
+  rawGeometry Json?  @map("raw_geometry")
+
+  // Financials & Valuation
+  askingPrice          Float? @map("asking_price")
+  estimatedMarketValue Float? @map("estimated_market_value")
+  suggestedOfferPrice  Float? @map("suggested_offer_price")
+  dealScore            Float? @map("deal_score")
+
+  // Data Provenance
+  provenance Json @default("{}")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  comps             Comp[]
+  offers            Offer[]
+  sellers           PropertySeller[]
+  dueDiligenceItems DueDiligenceItem[]
+  portfolioHoldings PortfolioHolding[]
+  ownerFinanceNotes OwnerFinanceNote[]
+  communicationLogs CommunicationLog[]
+
+  @@index([apn, county, state])
+  @@index([lifecycleStage])
+  @@map("properties")
+}
+
+model Comp {
+  id                     String    @id @default(uuid()) @db.Uuid
+  propertyId             String?   @map("property_id") @db.Uuid
+  property               Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  apn                    String
+  address                String?
+  county                 String
+  state                  String
+  acreage                Float
+  salePrice              Float     @map("sale_price")
+  saleDate               DateTime  @map("sale_date")
+  pricePerAcre           Float     @map("price_per_acre")
+  distanceMiles          Float     @map("distance_miles")
+  roadAccess             String    @default("UNKNOWN") @map("road_access")
+  utilities              String    @default("UNKNOWN")
+  wetlandsPercentage     Float     @default(0) @map("wetlands_percentage")
+  floodPercentage        Float     @default(0) @map("flood_percentage")
+  isArmLengthTransaction Boolean   @default(true) @map("is_arm_length_transaction")
+  isDuplicate            Boolean   @default(false) @map("is_duplicate")
+  isFamilyTransfer       Boolean   @default(false) @map("is_family_transfer")
+  isQuitclaim            Boolean   @default(false) @map("is_quitclaim")
+  isOutlier              Boolean   @default(false) @map("is_outlier")
+  exclusionReason        String?   @map("exclusion_reason")
+  includedInValuation    Boolean   @default(true) @map("included_in_valuation")
+  adjustments            Json?     @default("{}")
+  adjustedPricePerAcre   Float?    @map("adjusted_price_per_acre")
+  adjustedSalePrice      Float?    @map("adjusted_sale_price")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([propertyId])
+  @@index([county, state])
+  @@map("comps")
+}
+
+model Seller {
+  id               String                @id @default(uuid()) @db.Uuid
+  organizationId   String                @default("org_default") @map("organization_id")
+  name             String
+  email            String?
+  phone            String?
+  mailingAddress   String?               @map("mailing_address")
+  motivationLevel  SellerMotivationLevel @default(MEDIUM) @map("motivation_level")
+  askingPrice      Float?                @map("asking_price")
+  reasonForSelling String?               @map("reason_for_selling")
+  desiredTiming    String?               @map("desired_timing")
+  notes            String[]              @default([])
+  consent          Json?                 @default("[]")
+  campaignId       String?               @map("campaign_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  properties        PropertySeller[]
+  offers            Offer[]
+  communicationLogs CommunicationLog[]
+
+  @@map("sellers")
+}
+
+model PropertySeller {
+  propertyId String   @map("property_id") @db.Uuid
+  sellerId   String   @map("seller_id") @db.Uuid
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  seller     Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, sellerId])
+  @@map("property_sellers")
+}
+
+model Offer {
+  id                  String           @id @default(uuid()) @db.Uuid
+  propertyId          String           @map("property_id") @db.Uuid
+  sellerId            String           @map("seller_id") @db.Uuid
+  property            Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  seller              Seller           @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  version             Int              @default(1)
+  status              OfferStatus      @default(DRAFT)
+  scenarios           Json             @default("{}")
+  selectedScenarioKey String           @default("cash") @map("selected_scenario_key")
+  approvedById        String?          @map("approved_by_id")
+  approvedAt          DateTime?        @map("approved_at")
+  sentAt              DateTime?        @map("sent_at")
+  expiresAt           DateTime?        @map("expires_at")
+  documentUrl         String?          @map("document_url")
+  eSignatureStatus    ESignatureStatus @default(NOT_SENT) @map("esignature_status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([propertyId])
+  @@index([sellerId])
+  @@map("offers")
+}
+
+model Buyer {
+  id                       String   @id @default(uuid()) @db.Uuid
+  organizationId           String   @default("org_default") @map("organization_id")
+  name                     String
+  email                    String
+  phone                    String?
+  verifiedBuyer            Boolean  @default(false) @map("verified_buyer")
+  proofOfFundsVerified     Boolean  @default(false) @map("proof_of_funds_verified")
+  criteria                 Json     @default("{}")
+  purchasedPropertiesCount Int      @default(0) @map("purchased_properties_count")
+  unsubscribed             Boolean  @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@map("buyers")
+}
+
+model DueDiligenceItem {
+  id                 String            @id @default(uuid()) @db.Uuid
+  propertyId         String            @map("property_id") @db.Uuid
+  property           Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  category           DiligenceCategory
+  title              String
+  description        String
+  status             DiligenceStatus   @default(PENDING)
+  isBlocker          Boolean           @default(false) @map("is_blocker")
+  assignedToUser     String?           @map("assigned_to_user")
+  dueDate            DateTime?         @map("due_date")
+  verificationSource String?           @map("verification_source")
+  evidenceNotes      String?           @map("evidence_notes")
+  evidenceFileUrls   String[]          @default([]) @map("evidence_file_urls")
+  reviewedBy         String?           @map("reviewed_by")
+  reviewedAt         DateTime?         @map("reviewed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([propertyId])
+  @@index([status])
+  @@map("due_diligence_items")
+}
+
+model PortfolioHolding {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  propertyId            String                 @map("property_id") @db.Uuid
+  property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  apn                   String
+  address               String?
+  county                String
+  state                 String
+  acreage               Float
+  acquisitionDate       DateTime               @map("acquisition_date")
+  purchasePrice         Float                  @map("purchase_price")
+  closingCosts          Float                  @default(0) @map("closing_costs")
+  holdingCosts          Float                  @default(0) @map("holding_costs")
+  totalCostBasis        Float                  @map("total_cost_basis")
+  estimatedCurrentValue Float                  @map("estimated_current_value")
+  unrealizedProfit      Float                  @map("unrealized_profit")
+  holdingDays           Int                    @default(0) @map("holding_days")
+  status                PortfolioHoldingStatus @default(OWNED)
+
+  notes OwnerFinanceNote[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([propertyId])
+  @@index([status])
+  @@map("portfolio_holdings")
+}
+
+model OwnerFinanceNote {
+  id                      String           @id @default(uuid()) @db.Uuid
+  portfolioHoldingId      String           @map("portfolio_holding_id") @db.Uuid
+  portfolioHolding        PortfolioHolding @relation(fields: [portfolioHoldingId], references: [id], onDelete: Cascade)
+  propertyId              String           @map("property_id") @db.Uuid
+  property                Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  buyerName               String           @map("buyer_name")
+  buyerEmail              String           @map("buyer_email")
+  terms                   Json
+  startDate               DateTime         @map("start_date")
+  nextPaymentDueDate      DateTime         @map("next_payment_due_date")
+  currentBalance          Float            @map("current_balance")
+  status                  NoteStatus       @default(ACTIVE)
+  paymentsReceivedCount   Int              @default(0) @map("payments_received_count")
+  totalInterestCollected  Float            @default(0) @map("total_interest_collected")
+  totalPrincipalCollected Float            @default(0) @map("total_principal_collected")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([portfolioHoldingId])
+  @@index([status])
+  @@map("owner_finance_notes")
+}
+
+model CommunicationLog {
+  id                String                 @id @default(uuid()) @db.Uuid
+  sellerId          String                 @map("seller_id") @db.Uuid
+  seller            Seller                 @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  propertyId        String?                @map("property_id") @db.Uuid
+  property          Property?              @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  channel           CommunicationChannel
+  direction         CommunicationDirection
+  content           String
+  status            CommunicationStatus    @default(SENT)
+  providerMessageId String?                @map("provider_message_id")
+  sentByUserId      String?                @map("sent_by_user_id")
+  timestamp         DateTime               @default(now())
+
+  @@index([sellerId])
+  @@index([propertyId])
+  @@map("communication_logs")
+}
