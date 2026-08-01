@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
-import { ShoppingBag, Sparkles, CheckCircle2, UserCheck } from 'lucide-react';
+import { ShoppingBag, CheckCircle2, UserCheck, ShieldCheck, Mail } from 'lucide-react';
 
 export default function BuyersPage() {
   return (
@@ -11,82 +11,57 @@ export default function BuyersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-emerald-400" /> Buyer CRM & Explainable Disposition Matching
+            <ShoppingBag className="w-5 h-5 text-emerald-400" /> Buyer Matching CRM & Preference Criteria
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Match inventory with active land buyers based on territory, budget, acreage, and financing preferences.
+            Verified cash buyers, terms buyers, proof of funds status, target counties, and 0-100 property match scoring.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="primary" size="sm">
-            Add New Buyer
+            Add Cash Buyer
           </Button>
         </div>
       </div>
 
-      {/* Matching Results for Property APN 123-456-789 */}
-      <Card className="border-emerald-900/40">
+      {/* Buyer Directory Table */}
+      <Card className="border-slate-800 bg-slate-900">
         <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-emerald-400 flex items-center gap-2">
-                <Sparkles className="w-4 h-4" /> Recommended Buyers for APN 123-456-789 (5.2 AC - Costilla, CO)
-              </CardTitle>
-              <CardDescription>Matching criteria evaluated against 48 registered VIP cash & term buyers</CardDescription>
-            </div>
-            <Badge variant="success">2 High Confidence Matches</Badge>
-          </div>
+          <CardTitle>Verified Buyer Directory</CardTitle>
+          <CardDescription>Target regions, maximum budget, proof-of-funds verification, and terms preference</CardDescription>
         </CardHeader>
 
-        <div className="space-y-3 text-xs">
-          {/* Match 1 */}
-          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                  Mountain West Land Fund LLC <UserCheck className="w-4 h-4 text-emerald-400" />
-                </h3>
-                <p className="text-slate-400">Contact: David Miller | mwestland@gmail.com | (303) 555-0188</p>
-              </div>
-              <Badge variant="success">95% Match Score</Badge>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800/60 text-[11px]">
-              <div>
-                <span className="text-slate-400 font-semibold">Matched Criteria:</span>
-                <ul className="list-disc list-inside text-emerald-300 space-y-0.5 mt-0.5">
-                  <li>State & County Match (Costilla, CO)</li>
-                  <li>Acreage (5.2 AC within [2 - 20 AC] target)</li>
-                  <li>Price ($24,000 below $35,000 max budget)</li>
-                  <li>Verified VIP Cash Buyer (Proof of Funds on file)</li>
-                </ul>
-              </div>
-              <div className="flex flex-col justify-between items-end">
-                <Badge variant="info">Action: Immediate Outreach Recommended</Badge>
-                <Button variant="primary" size="sm">
-                  Send Property Deal Sheet
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Match 2 */}
-          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-bold text-white text-sm">Alpine RV & Recreational Holdings</h3>
-                <p className="text-slate-400">Contact: Sarah Connor | sconnor@alpinesites.com</p>
-              </div>
-              <Badge variant="warning">82% Match Score</Badge>
-            </div>
-
-            <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/60 text-[11px] flex justify-between items-center">
-              <span className="text-slate-300">Prefers Owner Financing ($2,500 down / $300/mo)</span>
-              <Button variant="outline" size="sm">
-                Send Terms Proposal
-              </Button>
-            </div>
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left text-slate-300">
+            <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
+              <tr>
+                <th className="p-3">Buyer Name</th>
+                <th className="p-3">Email / Contact</th>
+                <th className="p-3">Target Counties</th>
+                <th className="p-3">Max Budget</th>
+                <th className="p-3">POF Verified</th>
+                <th className="p-3">Purchased Count</th>
+                <th className="p-3">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tr className="hover:bg-slate-800/40">
+                <td className="p-3 font-semibold text-white">Apex Land Holdings LLC</td>
+                <td className="p-3">acquisitions@apexland.com</td>
+                <td className="p-3 text-emerald-400">Costilla CO, Elko NV</td>
+                <td className="p-3 text-slate-200">$250,000</td>
+                <td className="p-3">
+                  <Badge variant="success">POF VERIFIED ($500K)</Badge>
+                </td>
+                <td className="p-3">4 Properties</td>
+                <td className="p-3">
+                  <Button variant="outline" size="sm">
+                    Match Properties
+                  </Button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </Card>
     </div>

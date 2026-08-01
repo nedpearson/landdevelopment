@@ -2,58 +2,70 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
-import { Megaphone, Sparkles, Copy, Eye, Send } from 'lucide-react';
+import { Megaphone, Mail, Send, CheckCircle2, Copy } from 'lucide-react';
 
 export default function MarketingPage() {
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-emerald-400" /> Property Disposition & Listing Generator
+            <Megaphone className="w-5 h-5 text-emerald-400" /> Marketing & Disposition Campaign Center
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Generate high-converting property descriptions, seller-financing summaries, and landing pages.
+            Generate property email blasts, buyer SMS campaigns, direct mail letters, and social media listing packages.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm" icon={<Sparkles className="w-3.5 h-3.5" />}>
-            Generate AI Listing Copy
+          <Button variant="primary" size="sm">
+            Launch New Campaign
           </Button>
         </div>
       </div>
 
-      <Card className="border-emerald-900/40">
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>Listing Assets for APN 123-456-789 (5.2 AC - Costilla, CO)</CardTitle>
-              <CardDescription>Generated listing copy with verified attributes and seller financing terms</CardDescription>
-            </div>
-            <Badge variant="success">Ready for Publication</Badge>
-          </div>
-        </CardHeader>
+      {/* Campaign Generator Workspace */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-slate-800 bg-slate-900">
+          <CardHeader>
+            <CardTitle>Email Blast Listing Template</CardTitle>
+            <CardDescription>Auto-generated buyer email listing with pricing and terms</CardDescription>
+          </CardHeader>
 
-        <div className="space-y-4 text-xs">
-          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-            <div className="flex justify-between items-center text-slate-400 border-b border-slate-800 pb-2">
-              <span className="font-bold text-slate-200">Headline & Description</span>
-              <Button variant="ghost" size="sm" icon={<Copy className="w-3.5 h-3.5" />}>
-                Copy Listing
-              </Button>
-            </div>
-            <h3 className="text-sm font-bold text-emerald-400">
-              🌲 5.2 Acres of Mountain Freedom in Costilla County, CO | $1,450 Down & $276/mo!
-            </h3>
-            <p className="text-slate-300 leading-relaxed">
-              Escape the city to your private 5.2-acre off-grid haven near San Luis! Perfect for seasonal camping, mobile home living, or building your off-grid solar homestead. Fronts county-maintained dirt road with 320 feet of road frontage and zero flood zone or wetland exposure.
-            </p>
-            <div className="pt-2 text-[11px] text-emerald-300 font-mono">
-              <strong>Owner Financing Terms:</strong> $14,500 Total Price | $1,450 Down | $276.54/mo for 60 months | No Credit Check!
-            </div>
+          <div className="p-4 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-2">
+            <p className="font-bold text-emerald-400">Subject: 🎯 5.2 Acre Mountain View Parcel — Costilla County, CO ($250/mo Terms Available!)</p>
+            <hr className="border-slate-800" />
+            <p>APN: 123-456-789 | Costilla County, CO</p>
+            <p>Cash Price: $16,000 | Terms: $1,500 Down, $250/mo for 72 months</p>
+            <p>Legal Road Access Verified | $0 Back Taxes | Clear Title Commitment</p>
           </div>
-        </div>
-      </Card>
+
+          <div className="mt-4 flex justify-end">
+            <Button variant="outline" size="sm" icon={<Copy className="w-3.5 h-3.5" />}>
+              Copy Email Copy
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="border-slate-800 bg-slate-900">
+          <CardHeader>
+            <CardTitle>Direct Mail Seller Acquisition Campaign</CardTitle>
+            <CardDescription>Blind offer letter template for off-market land acquisition</CardDescription>
+          </CardHeader>
+
+          <div className="p-4 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-2">
+            <p className="font-bold text-amber-300">Dear Property Owner,</p>
+            <p>Pearson Developments would like to make an all-cash offer of $10,800 to purchase your 5.2-acre parcel (APN 123-456-789) in Costilla County, CO.</p>
+            <p>We pay all closing costs and back taxes. No Realtor commissions or fees.</p>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <Button variant="primary" size="sm" icon={<Send className="w-3.5 h-3.5" />}>
+              Dispatch Mailer Batch
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
