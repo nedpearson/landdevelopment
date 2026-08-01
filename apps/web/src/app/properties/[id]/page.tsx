@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function PropertyRecordPage({ params }: { params: { id: string } }) {
+export default function PropertyRecordPage({ params }: { params: { id: string } | Promise<{ id: string }> }) {
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'COMPS' | 'ACCESS_ZONING' | 'ENVIRONMENT' | 'OFFERS'>('OVERVIEW');
 
   return (
