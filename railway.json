@@ -5,7 +5,7 @@
     "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @land-intelligence/database run db:generate && pnpm build"
   },
   "deploy": {
-    "startCommand": "pnpm --filter @land-intelligence/web start",
+    "startCommand": "node apps/web/.next/standalone/apps/web/server.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
