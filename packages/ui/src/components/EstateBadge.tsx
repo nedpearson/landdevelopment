@@ -17,10 +17,13 @@ export type EstateCategory =
 
 export interface EstateBadgeProps {
   category: EstateCategory;
+  ownerName?: string;
+  name?: string;
   className?: string;
 }
 
-export const EstateBadge: React.FC<EstateBadgeProps> = ({ category, className }) => {
+export const EstateBadge: React.FC<EstateBadgeProps> = ({ category, ownerName, name, className }) => {
+  const displayOwner = ownerName || name;
   const styles: Record<EstateCategory, { label: string; style: string }> = {
     SURFACE_ESTATE: { label: 'Surface Estate', style: 'bg-emerald-950/80 text-emerald-300 border-emerald-800' },
     MINERAL_ESTATE: { label: 'Mineral Estate', style: 'bg-amber-950/80 text-amber-300 border-amber-800' },
@@ -41,12 +44,13 @@ export const EstateBadge: React.FC<EstateBadgeProps> = ({ category, className })
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold border transition-colors',
+        'inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold border transition-colors gap-1',
         item.style,
         className
       )}
     >
-      {item.label}
+      <span>{item.label}</span>
+      {displayOwner && <span className="opacity-80 font-normal">({displayOwner})</span>}
     </span>
   );
 };
