@@ -51,7 +51,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
                 <span className="text-slate-500 text-[10px] uppercase font-semibold">Mineral Share</span>
                 <div className="mt-1">
-                  <FractionBadge fraction={{ numerator: 1, denominator: 4 }} label="NMA" />
+                  <FractionBadge fraction={{ numerator: 1n, denominator: 4n }} label="NMA" />
                 </div>
               </div>
             </div>

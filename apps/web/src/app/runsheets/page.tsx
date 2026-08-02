@@ -106,41 +106,54 @@ export default function RunsheetsPage() {
             <CardDescription>Sovereign Patent to Current Record Owner Chain</CardDescription>
           </CardHeader>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left text-slate-300">
-              <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
-                <tr>
-                  <th className="p-3">Seq</th>
-                  <th className="p-3">Instrument Type</th>
-                  <th className="p-3">Grantor</th>
-                  <th className="p-3">Grantee</th>
-                  <th className="p-3">Recording Data</th>
-                  <th className="p-3">Execution Date</th>
-                  <th className="p-3">Title Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
-                {instruments.map((inst) => (
-                  <tr key={inst.id} className="hover:bg-slate-800/40">
-                    <td className="p-3 font-bold text-amber-400">#{inst.sequenceNumber}</td>
-                    <td className="p-3">
-                      <Badge variant={inst.instrumentType === 'PATENT' ? 'info' : 'warning'}>
-                        {inst.instrumentType.replace('_', ' ')}
-                      </Badge>
-                    </td>
-                    <td className="p-3 text-slate-200">{inst.grantor}</td>
-                    <td className="p-3 font-semibold text-white">{inst.grantee}</td>
-                    <td className="p-3 text-slate-300">Vol {inst.book}, Pg {inst.page} ({inst.docNumber})</td>
-                    <td className="p-3 text-slate-400">{inst.executionDate}</td>
-                    <td className="p-3">
-                      <Badge variant={inst.titleStatus === 'CLEARED_TITLE' ? 'success' : 'danger'}>
-                        {inst.titleStatus.replace('_', ' ')}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="relative border-l border-slate-700 ml-4 space-y-8 py-4">
+            {instruments.map((inst) => (
+              <div key={inst.id} className="relative pl-6">
+                <div className="absolute w-4 h-4 bg-slate-900 border-2 border-amber-500 rounded-full -left-[9px] top-1.5 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                <Card className="border-slate-800 bg-slate-950/50 hover:bg-slate-900 transition-colors">
+                  <CardHeader className="pb-3 border-b border-slate-800/60">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-amber-400 font-bold font-mono">#{inst.sequenceNumber}</span>
+                          <Badge variant={inst.instrumentType === 'PATENT' ? 'info' : 'warning'}>
+                            {inst.instrumentType.replace('_', ' ')}
+                          </Badge>
+                          <Badge variant={inst.titleStatus === 'CLEARED_TITLE' ? 'success' : 'danger'}>
+                            {inst.titleStatus.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        <CardTitle className="text-sm font-semibold text-white">
+                          {inst.grantor} <span className="text-slate-500 font-mono text-xs mx-1">→</span> {inst.grantee}
+                        </CardTitle>
+                      </div>
+                      <div className="text-right font-mono text-[10px]">
+                        <p className="text-slate-400">Execution: {inst.executionDate}</p>
+                        <p className="text-slate-500">Recorded: {inst.recordingDate}</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <div className="p-4 space-y-3">
+                    <div className="flex justify-between items-center text-xs font-mono">
+                      <div>
+                        <span className="text-slate-500 uppercase text-[10px]">Recording Reference</span>
+                        <p className="text-slate-300">Vol {inst.book}, Pg {inst.page} <span className="text-slate-500">({inst.docNumber})</span></p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-500 uppercase text-[10px]">Tract Linkage</span>
+                        <p className="text-amber-300/80 truncate max-w-[200px]">{inst.legalDescription}</p>
+                      </div>
+                    </div>
+                    {inst.notes && (
+                      <div className="bg-slate-900/50 rounded p-3 border border-slate-800/40 text-xs text-slate-400">
+                        <span className="text-slate-500 font-semibold mb-1 block">Instrument Notes & Clauses:</span>
+                        {inst.notes}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
+            ))}
           </div>
         </Card>
       ) : (

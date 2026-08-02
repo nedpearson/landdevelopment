@@ -15,7 +15,11 @@ export default function LeasesPage() {
       primaryTermYears: 3,
       royaltyFraction: '1/5th (20.0%)',
       grossAcres: 160.0,
-      pughClause: 'Vertical & Horizontal Pugh Clause Attached',
+      hasPughClause: true,
+      hasShutInClause: true,
+      hasContinuousDevelopment: false,
+      depthSeveranceTop: 'Surface',
+      depthSeveranceBottom: '100ft below base of Wolfcamp',
       hbpStatus: 'HBP_PRODUCING',
       producingWell: 'Miller 14-1H (API #42-389-34102)',
       dailyProduction: '1,240 BOEPD',
@@ -41,7 +45,7 @@ export default function LeasesPage() {
       <Card className="border-slate-800 bg-slate-900">
         <CardHeader>
           <CardTitle>Active Lease Directory</CardTitle>
-          <CardDescription>Lessor/Lessee details, royalty rate, Pugh clause status, and producing well evidence</CardDescription>
+          <CardDescription>Lessor/Lessee details, royalty rate, Depth Severances, and producing well evidence</CardDescription>
         </CardHeader>
 
         <div className="overflow-x-auto">
@@ -49,22 +53,30 @@ export default function LeasesPage() {
             <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
               <tr>
                 <th className="p-3">Lease Name</th>
-                <th className="p-3">Lessor</th>
-                <th className="p-3">Lessee</th>
                 <th className="p-3">Royalty</th>
-                <th className="p-3">Pugh Clause</th>
+                <th className="p-3">Depth Limits</th>
+                <th className="p-3">Clauses</th>
                 <th className="p-3">HBP Status</th>
                 <th className="p-3">Producing Well</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
               {leases.map((l) => (
-                <tr key={l.id} className="hover:bg-slate-800/40">
-                  <td className="p-3 font-bold text-amber-400">{l.leaseName}</td>
-                  <td className="p-3 text-slate-200">{l.lessor}</td>
-                  <td className="p-3 text-white font-semibold">{l.lessee}</td>
+                <tr key={l.id} className="hover:bg-slate-800/40 align-top">
+                  <td className="p-3">
+                    <p className="font-bold text-amber-400">{l.leaseName}</p>
+                    <p className="text-[10px] text-slate-400 mt-1">{l.lessor} → {l.lessee}</p>
+                  </td>
                   <td className="p-3 text-emerald-400 font-bold">{l.royaltyFraction}</td>
-                  <td className="p-3 text-slate-300">{l.pughClause}</td>
+                  <td className="p-3 text-slate-300 space-y-1">
+                    <p>Top: <Badge variant="default" className="text-[9px] bg-slate-800">{l.depthSeveranceTop}</Badge></p>
+                    <p>Btm: <Badge variant="default" className="text-[9px] bg-slate-800">{l.depthSeveranceBottom}</Badge></p>
+                  </td>
+                  <td className="p-3 space-y-1">
+                    {l.hasPughClause && <Badge variant="warning" className="block w-fit text-[9px]">PUGH CLAUSE</Badge>}
+                    {l.hasShutInClause && <Badge variant="info" className="block w-fit text-[9px]">SHUT-IN</Badge>}
+                    {l.hasContinuousDevelopment && <Badge variant="danger" className="block w-fit text-[9px]">CONT. DEV</Badge>}
+                  </td>
                   <td className="p-3">
                     <Badge variant="success" className="font-mono">{l.hbpStatus}</Badge>
                   </td>

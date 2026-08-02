@@ -12,8 +12,8 @@ export default function OwnershipPage() {
   const [royaltyNum, setRoyaltyNum] = useState(1);
   const [royaltyDen, setRoyaltyDen] = useState(5);
 
-  const mineralFraction = { numerator: mineralNum, denominator: mineralDen };
-  const royaltyFraction = { numerator: royaltyNum, denominator: royaltyDen };
+  const mineralFraction = { numerator: BigInt(mineralNum), denominator: BigInt(mineralDen) };
+  const royaltyFraction = { numerator: BigInt(royaltyNum), denominator: BigInt(royaltyDen) };
 
   const mineralDecimal = rationalToDecimal(mineralFraction);
   const royaltyDecimal = rationalToDecimal(royaltyFraction);

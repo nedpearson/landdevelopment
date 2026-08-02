@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, FractionBadge, EstateBadge } from '@land-intelligence/ui';
 import { MapPin, Plus, Scale, FileText, CheckCircle2, ShieldAlert, Layers } from 'lucide-react';
 import Link from 'next/link';
+import { rationalToDecimal } from '@land-intelligence/domain';
 
 export default function TractsPage() {
   const [selectedTractId, setSelectedTractId] = useState('trc-104');
@@ -19,7 +20,7 @@ export default function TractsPage() {
       grossAcres: 160.0,
       grossMineralAcres: 160.0,
       netMineralAcres: 40.0,
-      fraction: { numerator: 1, denominator: 4 },
+      fraction: { numerator: 1n, denominator: 4n },
       surfaceOwnerName: 'Reeves Ranch Holdings LLC',
       mineralOwnerName: 'Estate of Henry T. Miller',
       executiveRightsOwnerName: 'Miller Family Trust',
@@ -37,7 +38,7 @@ export default function TractsPage() {
       grossAcres: 160.0,
       grossMineralAcres: 160.0,
       netMineralAcres: 80.0,
-      fraction: { numerator: 1, denominator: 2 },
+      fraction: { numerator: 1n, denominator: 2n },
       surfaceOwnerName: 'Vance Energy Investments',
       mineralOwnerName: 'Pecos River Minerals LLC',
       executiveRightsOwnerName: 'Pecos River Minerals LLC',
@@ -67,6 +68,21 @@ export default function TractsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Map UI Placeholder */}
+      <Card className="border-slate-800 bg-slate-900 overflow-hidden relative">
+        <div className="absolute top-4 left-4 z-10">
+          <Badge variant="default" className="bg-slate-950/80 backdrop-blur-sm border-slate-800">
+            <MapPin className="w-3 h-3 mr-1 inline" /> GIS Map Layer (Placeholder)
+          </Badge>
+        </div>
+        <div className="h-64 w-full bg-slate-950 flex items-center justify-center relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+          <div className="text-center space-y-2 max-w-sm">
+            <Layers className="w-8 h-8 text-slate-700 mx-auto" />
+            <p className="text-xs text-slate-500 font-mono">Mapbox GL JS integration pending geometry hydration. Tract polygons will render here.</p>
+          </div>
+        </div>
+      </Card>
 
       {/* Tract Table & Detail View */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -146,7 +162,7 @@ export default function TractsPage() {
               <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
                 <span className="text-slate-500 uppercase text-[10px] font-semibold">Exact NMA Interest Calculation</span>
                 <p className="text-slate-200">Gross Mineral Acres: <strong className="text-white">{activeTract.grossMineralAcres} AC</strong></p>
-                <p className="text-slate-200">Mineral Fraction: <strong className="text-amber-300">{activeTract.fraction.numerator}/{activeTract.fraction.denominator} ({((activeTract.fraction.numerator / activeTract.fraction.denominator) * 100).toFixed(4)}%)</strong></p>
+                <p className="text-slate-200">Mineral Fraction: <strong className="text-amber-300">{activeTract.fraction.numerator.toString()}/{activeTract.fraction.denominator.toString()} ({(rationalToDecimal(activeTract.fraction) * 100).toFixed(4)}%)</strong></p>
                 <p className="text-slate-200">Net Mineral Acres: <strong className="text-emerald-400 font-bold">{activeTract.netMineralAcres.toFixed(4)} NMA</strong></p>
               </div>
 
