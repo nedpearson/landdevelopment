@@ -4,7 +4,7 @@ import { prisma } from '@land-intelligence/database';
 
 export type SearchResult = {
   id: string;
-  type: 'PROPERTY' | 'OWNER' | 'OFFER' | 'SELLER';
+  type: 'PROPERTY' | 'OWNER' | 'OFFER' | 'SELLER' | 'AI_FILTER';
   title: string;
   subtitle: string;
 };
@@ -84,7 +84,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
     if (isNaturalLanguage) {
       results.push({
         id: "nlp-hint",
-        type: "AI_FILTER" as any,
+        type: "AI_FILTER",
         title: `AI Filter Applied: ${query}`,
         subtitle: `Found ${properties.length} matching properties based on your natural language request.`
       });
