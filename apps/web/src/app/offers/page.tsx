@@ -80,11 +80,11 @@ export default function OffersPage() {
             <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Down Payment Amount:</span>
-                <span className="font-bold text-amber-300">${terms.downPaymentUsd.toFixed(2)}</span>
+                <span className="font-bold text-amber-300">${terms.downPaymentAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Monthly Payment:</span>
-                <span className="text-base font-bold text-emerald-400">${terms.monthlyPaymentUsd.toFixed(2)} / mo</span>
+                <span className="text-base font-bold text-emerald-400">${terms.monthlyPayment.toFixed(2)} / mo</span>
               </div>
             </div>
           </div>
