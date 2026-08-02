@@ -225,3 +225,59 @@ export interface LandmanBillingEntry {
   totalBilledUsd: number;
   invoiceStatus: 'UNBILLED' | 'INVOICED' | 'PAID';
 }
+
+// -------------------------------------------------------------
+// PHASE L1 EXPANSION TYPES
+// -------------------------------------------------------------
+
+export type OrganizationOperatingMode = 'LAND_INVESTMENT' | 'LANDMAN_OPERATIONS' | 'DUAL_MODE';
+
+export type EstateType = 
+  | 'SURFACE_ESTATE'
+  | 'MINERAL_ESTATE'
+  | 'EXECUTIVE_RIGHTS'
+  | 'ROYALTY_INTEREST'
+  | 'NON_PARTICIPATING_ROYALTY'
+  | 'OVERRIDING_ROYALTY'
+  | 'WORKING_INTEREST'
+  | 'LEASEHOLD_INTEREST'
+  | 'OPERATING_RIGHTS'
+  | 'WATER_RIGHTS'
+  | 'PORE_SPACE'
+  | 'SOLAR_RIGHTS'
+  | 'WIND_RIGHTS'
+  | 'RIGHT_OF_WAY';
+
+export interface ProjectClient {
+  id: string;
+  organizationId: string;
+  name: string;
+  contactName?: string;
+  contactEmail?: string;
+  billingDetails?: any;
+}
+
+export interface TractParcel {
+  tractId: string;
+  propertyId: string;
+  fractionOfParcel: number;
+}
+
+export interface Estate {
+  id: string;
+  type: EstateType;
+  description?: string;
+}
+
+export interface TractOwnership {
+  id: string;
+  tractId: string;
+  estateId: string;
+  ownerName: string;
+  numerator: bigint;
+  denominator: bigint;
+  decimalValue: number;
+  netMineralAcres?: number;
+  depthSeverance?: string;
+  notes?: string;
+}

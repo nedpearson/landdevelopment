@@ -11,6 +11,12 @@ datasource db {
   extensions = [uuidOssp(map: "uuid-ossp", schema: "extensions")]
 }
 
+enum OrganizationOperatingMode {
+  LAND_INVESTMENT
+  LANDMAN_OPERATIONS
+  DUAL_MODE
+}
+
 enum PropertyLifecycleStage {
   MARKET_DISCOVERY
   PARCEL_DISCOVERY
@@ -181,6 +187,23 @@ enum CurativeStatus {
   CLEARED
 }
 
+enum EstateType {
+  SURFACE_ESTATE
+  MINERAL_ESTATE
+  EXECUTIVE_RIGHTS
+  ROYALTY_INTEREST
+  NON_PARTICIPATING_ROYALTY
+  OVERRIDING_ROYALTY
+  WORKING_INTEREST
+  LEASEHOLD_INTEREST
+  OPERATING_RIGHTS
+  WATER_RIGHTS
+  PORE_SPACE
+  SOLAR_RIGHTS
+  WIND_RIGHTS
+  RIGHT_OF_WAY
+}
+
 model Property {
   id               String                 @id @default(uuid()) @db.Uuid
   organizationId   String                 @default("org_default") @map("organization_id")
@@ -235,6 +258,7 @@ model Property {
   portfolioHoldings PortfolioHolding[]
   ownerFinanceNotes OwnerFinanceNote[]
   communicationLogs CommunicationLog[]
+  tracts            TractParcel[]
 
   @@index([apn, county, state])
   @@index([lifecycleStage])
@@ -338,16 +362,16 @@ model Offer {
 }
 
 model Buyer {
-  id                       String   @id @default(uuid()) @db.Uuid
-  organizationId           String   @default("org_default") @map("organization_id")
+  id                       String  @id @default(uuid()) @db.Uuid
+  organizationId           String  @default("org_default") @map("organization_id")
   name                     String
   email                    String
   phone                    String?
-  verifiedBuyer            Boolean  @default(false) @map("verified_buyer")
-  proofOfFundsVerified     Boolean  @default(false) @map("proof_of_funds_verified")
-  criteria                 Json     @default("{}")
-  purchasedPropertiesCount Int      @default(0) @map("purchased_properties_count")
-  unsubscribed             Boolean  @default(false)
+  verifiedBuyer            Boolean @default(false) @map("verified_buyer")
+  proofOfFundsVerified     Boolean @default(false) @map("proof_of_funds_verified")
+  criteria                 Json    @default("{}")
+  purchasedPropertiesCount Int     @default(0) @map("purchased_properties_count")
+  unsubscribed             Boolean @default(false)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -459,10 +483,14 @@ model CommunicationLog {
 // -------------------------------------------------------------
 
 model LandProject {
-  id                    String          @id @default(uuid()) @db.Uuid
-  organizationId        String          @default("org_default") @map("organization_id")
-  projectName           String          @map("project_name")
-  clientName            String          @map("client_name")
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @default("org_default") @map("organization_id")
+  projectName    String @map("project_name")
+
+  clientId   String?        @map("client_id") @db.Uuid
+  client     ProjectClient? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientName String         @map("client_name") // Kept for legacy support until fully migrated
+
   projectType           LandProjectType @map("project_type")
   state                 String
   county                String
@@ -482,55 +510,58 @@ model LandProject {
 }
 
 model LandTract {
-  id                        String          @id @default(uuid()) @db.Uuid
-  projectId                 String          @map("project_id") @db.Uuid
-  project                   LandProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tractNumber               String          @map("tract_number")
-  clientTractRef            String?         @map("client_tract_ref")
-  county                    String
-  state                     String
-  legalDescription          String          @map("legal_description")
-  grossAcres                Float           @default(0) @map("gross_acres")
-  grossMineralAcres         Float           @default(0) @map("gross_mineral_acres")
-  netMineralAcres           Float           @default(0) @map("net_mineral_acres")
-  surfaceAcres              Float           @default(0) @map("surface_acres")
-  formationName             String?         @map("formation_name")
-  surfaceOwnerName          String          @map("surface_owner_name")
-  mineralOwnerName          String          @map("mineral_owner_name")
+  id                       String          @id @default(uuid()) @db.Uuid
+  projectId                String          @map("project_id") @db.Uuid
+  project                  LandProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tractNumber              String          @map("tract_number")
+  clientTractRef           String?         @map("client_tract_ref")
+  county                   String
+  state                    String
+  legalDescription         String          @map("legal_description")
+  grossAcres               Float           @default(0) @map("gross_acres")
+  grossMineralAcres        Float           @default(0) @map("gross_mineral_acres")
+  netMineralAcres          Float           @default(0) @map("net_mineral_acres")
+  surfaceAcres             Float           @default(0) @map("surface_acres")
+  formationName            String?         @map("formation_name")
+  surfaceOwnerName         String          @map("surface_owner_name")
+  mineralOwnerName         String          @map("mineral_owner_name")
   executiveRightsOwnerName String          @map("executive_rights_owner_name")
-  leaseholdStatus           LeaseholdStatus @default(OPEN_UNLEASED) @map("leasehold_status")
-  hbpStatus                 HbpStatus       @default(NOT_HBP) @map("hbp_status")
-  titleStatus               TitleStatus     @default(CLEAR) @map("title_status")
-  status                    String          @default("ASSIGNED")
+  leaseholdStatus          LeaseholdStatus @default(OPEN_UNLEASED) @map("leasehold_status")
+  hbpStatus                HbpStatus       @default(NOT_HBP) @map("hbp_status")
+  titleStatus              TitleStatus     @default(CLEAR) @map("title_status")
+  status                   String          @default("ASSIGNED")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  runsheet           TitleRunsheet?
-  leases             LeaseRecord[]
-  curativeItems      CurativeItem[]
-  titleInstruments   TitleInstrument[]
+  runsheet         TitleRunsheet?
+  leases           LeaseRecord[]
+  curativeItems    CurativeItem[]
+  titleInstruments TitleInstrument[]
+
+  tractOwnerships TractOwnership[]
+  tractParcels    TractParcel[]
 
   @@index([projectId])
   @@map("land_tracts")
 }
 
 model TitleInstrument {
-  id                       String         @id @default(uuid()) @db.Uuid
-  tractId                  String         @map("tract_id") @db.Uuid
-  tract                    LandTract      @relation(fields: [tractId], references: [id], onDelete: Cascade)
-  entryNumber              Int            @map("entry_number")
-  instrumentType           InstrumentType @map("instrument_type")
-  grantor                  String
-  grantee                  String
-  executionDate            DateTime       @map("execution_date")
-  recordingDate            DateTime       @map("recording_date")
-  bookPageDoc              String         @map("book_page_doc")
-  legalDescription         String         @map("legal_description")
-  conveyedNumerator        Int            @default(1) @map("conveyed_numerator")
-  conveyedDenominator      Int            @default(1) @map("conveyed_denominator")
-  hasGapOrDefect           Boolean        @default(false) @map("has_gap_or_defect")
-  defectNotes              String?        @map("defect_notes")
+  id                  String         @id @default(uuid()) @db.Uuid
+  tractId             String         @map("tract_id") @db.Uuid
+  tract               LandTract      @relation(fields: [tractId], references: [id], onDelete: Cascade)
+  entryNumber         Int            @map("entry_number")
+  instrumentType      InstrumentType @map("instrument_type")
+  grantor             String
+  grantee             String
+  executionDate       DateTime       @map("execution_date")
+  recordingDate       DateTime       @map("recording_date")
+  bookPageDoc         String         @map("book_page_doc")
+  legalDescription    String         @map("legal_description")
+  conveyedNumerator   Int            @default(1) @map("conveyed_numerator")
+  conveyedDenominator Int            @default(1) @map("conveyed_denominator")
+  hasGapOrDefect      Boolean        @default(false) @map("has_gap_or_defect")
+  defectNotes         String?        @map("defect_notes")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -553,22 +584,22 @@ model TitleRunsheet {
 }
 
 model LeaseRecord {
-  id                      String    @id @default(uuid()) @db.Uuid
-  tractId                 String    @map("tract_id") @db.Uuid
-  tract                   LandTract @relation(fields: [tractId], references: [id], onDelete: Cascade)
-  leaseNumber             String    @map("lease_number")
-  lessorName              String    @map("lessor_name")
-  lesseeName              String    @map("lessee_name")
-  effectiveDate           DateTime  @map("effective_date")
-  primaryTermYears        Int       @default(3) @map("primary_term_years")
-  expirationDate          DateTime  @map("expiration_date")
-  bonusPerNma             Float     @default(0) @map("bonus_per_nma")
-  royaltyNumerator        Int       @default(1) @map("royalty_numerator")
-  royaltyDenominator      Int       @default(5) @map("royalty_denominator")
-  hasPughClause           Boolean   @default(true) @map("has_pugh_clause")
-  hasShutInClause         Boolean   @default(true) @map("has_shut_in_clause")
+  id                       String    @id @default(uuid()) @db.Uuid
+  tractId                  String    @map("tract_id") @db.Uuid
+  tract                    LandTract @relation(fields: [tractId], references: [id], onDelete: Cascade)
+  leaseNumber              String    @map("lease_number")
+  lessorName               String    @map("lessor_name")
+  lesseeName               String    @map("lessee_name")
+  effectiveDate            DateTime  @map("effective_date")
+  primaryTermYears         Int       @default(3) @map("primary_term_years")
+  expirationDate           DateTime  @map("expiration_date")
+  bonusPerNma              Float     @default(0) @map("bonus_per_nma")
+  royaltyNumerator         Int       @default(1) @map("royalty_numerator")
+  royaltyDenominator       Int       @default(5) @map("royalty_denominator")
+  hasPughClause            Boolean   @default(true) @map("has_pugh_clause")
+  hasShutInClause          Boolean   @default(true) @map("has_shut_in_clause")
   hasContinuousDevelopment Boolean   @default(false) @map("has_continuous_development")
-  status                  String    @default("ACTIVE")
+  status                   String    @default("ACTIVE")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -596,20 +627,20 @@ model CurativeItem {
 }
 
 model RightOfWaySegment {
-  id                   String   @id @default(uuid()) @db.Uuid
-  projectId            String   @map("project_id") @db.Uuid
-  segmentName          String   @map("segment_name")
-  infrastructureType   String   @map("infrastructure_type")
-  centerlineLengthRods Float    @map("centerline_length_rods")
-  easementWidthFeet    Float    @map("easement_width_feet")
-  permanentAcres       Float    @map("permanent_acres")
-  temporaryAcres       Float    @map("temporary_acres")
-  pricePerRodUsd       Float    @map("price_per_rod_usd")
-  surfaceDamageUsd     Float    @map("surface_damage_usd")
-  cropDamageUsd        Float    @map("crop_damage_usd")
-  totalOfferUsd        Float    @map("total_offer_usd")
-  easementSigned       Boolean  @default(false) @map("easement_signed")
-  condemnationRisk     Boolean  @default(false) @map("condemnation_risk")
+  id                   String  @id @default(uuid()) @db.Uuid
+  projectId            String  @map("project_id") @db.Uuid
+  segmentName          String  @map("segment_name")
+  infrastructureType   String  @map("infrastructure_type")
+  centerlineLengthRods Float   @map("centerline_length_rods")
+  easementWidthFeet    Float   @map("easement_width_feet")
+  permanentAcres       Float   @map("permanent_acres")
+  temporaryAcres       Float   @map("temporary_acres")
+  pricePerRodUsd       Float   @map("price_per_rod_usd")
+  surfaceDamageUsd     Float   @map("surface_damage_usd")
+  cropDamageUsd        Float   @map("crop_damage_usd")
+  totalOfferUsd        Float   @map("total_offer_usd")
+  easementSigned       Boolean @default(false) @map("easement_signed")
+  condemnationRisk     Boolean @default(false) @map("condemnation_risk")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -619,18 +650,18 @@ model RightOfWaySegment {
 }
 
 model RenewableProject {
-  id                        String   @id @default(uuid()) @db.Uuid
-  organizationId            String   @default("org_default") @map("organization_id")
-  projectName               String   @map("project_name")
-  technologyType            String   @map("technology_type")
-  targetControlAcres        Float    @map("target_control_acres")
-  signedControlAcres        Float    @map("signed_control_acres")
-  siteControlPercentage     Float    @map("site_control_percentage")
-  interconnectionSubstation String   @map("interconnection_substation")
-  distanceToSubstationMiles Float    @map("distance_to_substation_miles")
-  optionTermYears           Int      @map("option_term_years")
-  optionRentPerAcYr         Float    @map("option_rent_per_ac_yr")
-  operatingRentPerAcYr      Float    @map("operating_rent_per_ac_yr")
+  id                        String @id @default(uuid()) @db.Uuid
+  organizationId            String @default("org_default") @map("organization_id")
+  projectName               String @map("project_name")
+  technologyType            String @map("technology_type")
+  targetControlAcres        Float  @map("target_control_acres")
+  signedControlAcres        Float  @map("signed_control_acres")
+  siteControlPercentage     Float  @map("site_control_percentage")
+  interconnectionSubstation String @map("interconnection_substation")
+  distanceToSubstationMiles Float  @map("distance_to_substation_miles")
+  optionTermYears           Int    @map("option_term_years")
+  optionRentPerAcYr         Float  @map("option_rent_per_ac_yr")
+  operatingRentPerAcYr      Float  @map("operating_rent_per_ac_yr")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -639,23 +670,94 @@ model RenewableProject {
 }
 
 model LandmanBillingEntry {
-  id                    String   @id @default(uuid()) @db.Uuid
-  projectId             String   @map("project_id") @db.Uuid
-  landmanName           String   @map("landman_name")
-  date                  DateTime
-  hoursWorked           Float    @map("hours_worked")
-  hourlyRateUsd         Float    @map("hourly_rate_usd")
-  mileageMiles          Float    @map("mileage_miles")
-  mileageRateUsd        Float    @map("mileage_rate_usd")
-  perDiemUsd            Float    @map("per_diem_usd")
+  id                     String   @id @default(uuid()) @db.Uuid
+  projectId              String   @map("project_id") @db.Uuid
+  landmanName            String   @map("landman_name")
+  date                   DateTime
+  hoursWorked            Float    @map("hours_worked")
+  hourlyRateUsd          Float    @map("hourly_rate_usd")
+  mileageMiles           Float    @map("mileage_miles")
+  mileageRateUsd         Float    @map("mileage_rate_usd")
+  perDiemUsd             Float    @map("per_diem_usd")
   outOfPocketExpensesUsd Float    @map("out_of_pocket_expenses_usd")
-  expenseCategory       String   @map("expense_category")
-  totalBilledUsd        Float    @map("total_billed_usd")
-  invoiceStatus         String   @default("UNBILLED") @map("invoice_status")
+  expenseCategory        String   @map("expense_category")
+  totalBilledUsd         Float    @map("total_billed_usd")
+  invoiceStatus          String   @default("UNBILLED") @map("invoice_status")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([projectId])
   @@map("landman_billing_entries")
+}
+
+// -------------------------------------------------------------
+// LANDMAN EXPANSION MODELS (PHASE L1)
+// -------------------------------------------------------------
+
+model ProjectClient {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @default("org_default") @map("organization_id")
+  name           String
+  contactName    String? @map("contact_name")
+  contactEmail   String? @map("contact_email")
+  billingDetails Json?   @default("{}") @map("billing_details")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  projects LandProject[]
+
+  @@map("project_clients")
+}
+
+model TractParcel {
+  tractId    String    @map("tract_id") @db.Uuid
+  propertyId String    @map("property_id") @db.Uuid
+  tract      LandTract @relation(fields: [tractId], references: [id], onDelete: Cascade)
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // To support tracts covering only a part of a parcel
+  fractionOfParcel Float @default(1.0) @map("fraction_of_parcel")
+
+  @@id([tractId, propertyId])
+  @@map("tract_parcels")
+}
+
+model Estate {
+  id          String     @id @default(uuid()) @db.Uuid
+  type        EstateType
+  description String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  tractOwnerships TractOwnership[]
+
+  @@map("estates")
+}
+
+model TractOwnership {
+  id       String    @id @default(uuid()) @db.Uuid
+  tractId  String    @map("tract_id") @db.Uuid
+  tract    LandTract @relation(fields: [tractId], references: [id], onDelete: Cascade)
+  estateId String    @map("estate_id") @db.Uuid
+  estate   Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  ownerName String @map("owner_name")
+
+  // Rational math storage
+  numerator    BigInt @default(1)
+  denominator  BigInt @default(1)
+  decimalValue Float  @map("decimal_value")
+
+  netMineralAcres Float?  @map("net_mineral_acres")
+  depthSeverance  String? @map("depth_severance")
+  notes           String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([tractId])
+  @@index([estateId])
+  @@map("tract_ownerships")
 }
