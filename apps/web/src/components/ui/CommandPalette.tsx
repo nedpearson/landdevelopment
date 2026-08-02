@@ -5,7 +5,7 @@ import { Command } from "cmdk";
 import { useGlobalSearch } from "../providers/GlobalSearchProvider";
 import { useDrilldown } from "../providers/DrilldownProvider";
 import { globalSearch, SearchResult } from "@/actions/searchActions";
-import { Search, Loader2, Map, User } from "lucide-react";
+import { Search, Loader2, Map, User, Sparkles } from "lucide-react";
 
 export function CommandPalette() {
   const { isOpen, setIsOpen } = useGlobalSearch();
@@ -100,6 +100,7 @@ export function CommandPalette() {
                     className="flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer aria-selected:bg-indigo-900/40 aria-selected:text-white text-slate-300 transition-colors"
                   >
                     <div className="p-2 rounded bg-slate-800 border border-slate-700 flex-shrink-0">
+                      {result.type === "AI_FILTER" && <Sparkles className="w-5 h-5 text-indigo-400" />}
                       {result.type === "PROPERTY" && <Map className="w-5 h-5 text-emerald-400" />}
                       {result.type === "SELLER" && <User className="w-5 h-5 text-sky-400" />}
                       {result.type === "OWNER" && <User className="w-5 h-5 text-sky-400" />}
