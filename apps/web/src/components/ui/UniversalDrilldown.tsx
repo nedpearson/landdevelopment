@@ -16,6 +16,7 @@ import { InvestmentScorecard } from "./InvestmentScorecard";
 import { RentalScorecard } from "./RentalScorecard";
 import { DevelopmentScorecard } from "./DevelopmentScorecard";
 import { CampaignLaunchpad } from "./CampaignLaunchpad";
+import { DataRoom } from "./DataRoom";
 
 import type { Property } from "@land-intelligence/database";
 import { getPropertyById } from "@/actions/propertyActions";
@@ -185,6 +186,9 @@ export function UniversalDrilldown() {
               
               {/* Phase 13: Automated Campaign Engine */}
               <CampaignLaunchpad propertyData={propertyData} />
+
+              {/* Phase 14: Smart Data Room & AI Document Analyst */}
+              <DataRoom />
             </>
           )}
 
