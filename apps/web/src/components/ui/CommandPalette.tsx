@@ -73,8 +73,8 @@ export function CommandPalette() {
         <div className="flex items-center px-4 py-4 border-b border-white/[0.05]">
           <Search className="w-5 h-5 text-slate-500 mr-3 shrink-0" />
           <Command.Input 
-            value={search}
-            onValueChange={setSearch}
+            value={query}
+            onValueChange={setQuery}
             placeholder="Search parcels, owners, or type natural language (e.g. 'large texas multifamily')..." 
             className="flex-1 bg-transparent border-none outline-none text-slate-200 placeholder:text-slate-500 text-[15px] font-sans"
           />
@@ -90,7 +90,7 @@ export function CommandPalette() {
             </div>
           )}
           
-          {!loading && results.length === 0 && search.length > 2 && (
+          {!loading && results.length === 0 && query.length > 2 && (
             <div className="py-14 text-center">
               <p className="text-slate-400 text-sm font-medium">No results found.</p>
               <p className="text-slate-600 text-xs mt-1">Try searching by APN, owner name, or state.</p>
@@ -103,7 +103,7 @@ export function CommandPalette() {
                 <Command.Item
                   key={result.id}
                   value={result.title}
-                  onSelect={() => handleSelect(result)}
+                  onSelect={() => onSelect(result)}
                   className="flex items-center gap-4 px-3 py-3 rounded-xl cursor-pointer aria-selected:bg-white/[0.04] aria-selected:text-white text-slate-300 transition-colors group"
                 >
                   <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] flex-shrink-0 group-aria-selected:bg-indigo-500/10 group-aria-selected:border-indigo-500/20 transition-colors">
