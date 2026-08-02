@@ -15,7 +15,7 @@ COPY packages/domain/package.json ./packages/domain/
 COPY packages/integrations/package.json ./packages/integrations/
 COPY packages/ui/package.json ./packages/ui/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Stage 2: Builder
 FROM base AS builder

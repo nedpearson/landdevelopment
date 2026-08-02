@@ -1,0 +1,11 @@
+{
+  "variables": {
+    "NIXPACKS_PATH": "/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin",
+    "NPM_CONFIG_PRODUCTION": "false"
+  },
+  "phases": {
+    "install": {
+      "cmd": "pnpm install --no-frozen-lockfile"
+    }
+  }
+}
