@@ -534,11 +534,9 @@ model LandTract {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  runsheet         TitleRunsheet?
-  leases           LeaseRecord[]
-  curativeItems    CurativeItem[]
-  titleInstruments TitleInstrument[]
-
+  runsheet        TitleRunsheet?
+  leases          LeaseRecord[]
+  curativeItems   CurativeItem[]
   tractOwnerships TractOwnership[]
   tractParcels    TractParcel[]
 
@@ -547,26 +545,31 @@ model LandTract {
 }
 
 model TitleInstrument {
-  id                  String         @id @default(uuid()) @db.Uuid
-  tractId             String         @map("tract_id") @db.Uuid
-  tract               LandTract      @relation(fields: [tractId], references: [id], onDelete: Cascade)
-  entryNumber         Int            @map("entry_number")
-  instrumentType      InstrumentType @map("instrument_type")
-  grantor             String
-  grantee             String
-  executionDate       DateTime       @map("execution_date")
-  recordingDate       DateTime       @map("recording_date")
-  bookPageDoc         String         @map("book_page_doc")
-  legalDescription    String         @map("legal_description")
-  conveyedNumerator   Int            @default(1) @map("conveyed_numerator")
-  conveyedDenominator Int            @default(1) @map("conveyed_denominator")
-  hasGapOrDefect      Boolean        @default(false) @map("has_gap_or_defect")
-  defectNotes         String?        @map("defect_notes")
+  id               String         @id @default(uuid()) @db.Uuid
+  instrumentType   InstrumentType @map("instrument_type")
+  grantor          String
+  grantee          String
+  executionDate    DateTime       @map("execution_date")
+  recordingDate    DateTime       @map("recording_date")
+  bookPageDoc      String         @map("book_page_doc")
+  legalDescription String         @map("legal_description")
+
+  // Base fractional math
+  conveyedNumerator   BigInt @default(1) @map("conveyed_numerator")
+  conveyedDenominator BigInt @default(1) @map("conveyed_denominator")
+
+  hasGapOrDefect Boolean @default(false) @map("has_gap_or_defect")
+  defectNotes    String? @map("defect_notes")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([tractId])
+  runsheetEntries RunSheetEntry[]
+  grantingClauses GrantingClause[]
+  reservations    Reservation[]
+  exceptions      Exception[]
+  parties         InstrumentParty[]
+
   @@map("title_instruments")
 }
 
@@ -580,7 +583,90 @@ model TitleRunsheet {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  entries RunSheetEntry[]
+
   @@map("title_runsheets")
+}
+
+// Phase L2 Title Models
+model RunSheetEntry {
+  id           String          @id @default(uuid()) @db.Uuid
+  runsheetId   String          @map("runsheet_id") @db.Uuid
+  runsheet     TitleRunsheet   @relation(fields: [runsheetId], references: [id], onDelete: Cascade)
+  instrumentId String          @map("instrument_id") @db.Uuid
+  instrument   TitleInstrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+
+  entryNumber Int     @map("entry_number")
+  notes       String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([runsheetId, entryNumber])
+  @@index([instrumentId])
+  @@map("runsheet_entries")
+}
+
+model InstrumentParty {
+  id           String          @id @default(uuid()) @db.Uuid
+  instrumentId String          @map("instrument_id") @db.Uuid
+  instrument   TitleInstrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  partyType    String // 'GRANTOR', 'GRANTEE', 'LESSOR', 'LESSEE', etc.
+  name         String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([instrumentId])
+  @@map("instrument_parties")
+}
+
+model GrantingClause {
+  id             String          @id @default(uuid()) @db.Uuid
+  instrumentId   String          @map("instrument_id") @db.Uuid
+  instrument     TitleInstrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  estateType     EstateType      @map("estate_type")
+  numerator      BigInt          @default(1)
+  denominator    BigInt          @default(1)
+  decimalValue   Float           @map("decimal_value")
+  depthSeverance String?         @map("depth_severance")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([instrumentId])
+  @@map("granting_clauses")
+}
+
+model Reservation {
+  id           String          @id @default(uuid()) @db.Uuid
+  instrumentId String          @map("instrument_id") @db.Uuid
+  instrument   TitleInstrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  estateType   EstateType      @map("estate_type")
+  numerator    BigInt          @default(1)
+  denominator  BigInt          @default(1)
+  decimalValue Float           @map("decimal_value")
+  notes        String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([instrumentId])
+  @@map("reservations")
+}
+
+model Exception {
+  id           String          @id @default(uuid()) @db.Uuid
+  instrumentId String          @map("instrument_id") @db.Uuid
+  instrument   TitleInstrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  description  String
+  notes        String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([instrumentId])
+  @@map("exceptions")
 }
 
 model LeaseRecord {

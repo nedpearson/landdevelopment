@@ -9,3 +9,5 @@ export * from './types/buyers';
 export * from './types/portfolio';
 export * from './types/ai';
 export * from './types/landman';
+
+export * from './utils/rationalMath';

@@ -31,26 +31,9 @@ export type LandProjectType =
   | 'CURATIVE_PROJECT'
   | 'DIVISION_ORDER_PAYDECK';
 
-export interface RationalFraction {
-  numerator: number;
-  denominator: number;
-}
-
-export function rationalToDecimal(f: RationalFraction): number {
-  if (f.denominator === 0) return 0;
-  return f.numerator / f.denominator;
-}
-
-export function decimalToRational(decimal: number, precision: number = 1000000): RationalFraction {
-  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
-  const num = Math.round(decimal * precision);
-  const den = precision;
-  const common = gcd(num, den);
-  return {
-    numerator: num / common,
-    denominator: den / common,
-  };
-}
+import { RationalFraction, rationalToDecimal, decimalToRational } from '../utils/rationalMath';
+export type { RationalFraction };
+export { rationalToDecimal, decimalToRational };
 
 export interface LandProject {
   id: string;
@@ -279,5 +262,51 @@ export interface TractOwnership {
   decimalValue: number;
   netMineralAcres?: number;
   depthSeverance?: string;
+  notes?: string;
+}
+
+// -------------------------------------------------------------
+// PHASE L2 TITLE MODELS
+// -------------------------------------------------------------
+
+export interface RunSheetEntry {
+  id: string;
+  runsheetId: string;
+  instrumentId: string;
+  entryNumber: number;
+  notes?: string;
+}
+
+export interface InstrumentParty {
+  id: string;
+  instrumentId: string;
+  partyType: string;
+  name: string;
+}
+
+export interface GrantingClause {
+  id: string;
+  instrumentId: string;
+  estateType: EstateType;
+  numerator: bigint;
+  denominator: bigint;
+  decimalValue: number;
+  depthSeverance?: string;
+}
+
+export interface Reservation {
+  id: string;
+  instrumentId: string;
+  estateType: EstateType;
+  numerator: bigint;
+  denominator: bigint;
+  decimalValue: number;
+  notes?: string;
+}
+
+export interface Exception {
+  id: string;
+  instrumentId: string;
+  description: string;
   notes?: string;
 }
