@@ -15,6 +15,7 @@ import { useIndustryRole } from "../providers/IndustryRoleProvider";
 import { InvestmentScorecard } from "./InvestmentScorecard";
 import { RentalScorecard } from "./RentalScorecard";
 import { DevelopmentScorecard } from "./DevelopmentScorecard";
+import { CampaignLaunchpad } from "./CampaignLaunchpad";
 
 import type { Property } from "@land-intelligence/database";
 import { getPropertyById } from "@/actions/propertyActions";
@@ -181,6 +182,9 @@ export function UniversalDrilldown() {
                   <PropertyTimeline />
                 </div>
               </div>
+              
+              {/* Phase 13: Automated Campaign Engine */}
+              <CampaignLaunchpad propertyData={propertyData} />
             </>
           )}
 
