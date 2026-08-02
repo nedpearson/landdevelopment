@@ -11,6 +11,10 @@ import { PropertyHealthBadge } from "./PropertyHealthBadge";
 import { NextBestAction } from "./NextBestAction";
 import { PropertyTimeline } from "./PropertyTimeline";
 import { DecisionSimulator } from "./DecisionSimulator";
+import { useIndustryRole } from "../providers/IndustryRoleProvider";
+import { InvestmentScorecard } from "./InvestmentScorecard";
+import { RentalScorecard } from "./RentalScorecard";
+import { DevelopmentScorecard } from "./DevelopmentScorecard";
 
 import type { Property } from "@land-intelligence/database";
 import { getPropertyById } from "@/actions/propertyActions";
@@ -25,6 +29,7 @@ const ICONS: Record<EntityType, React.ReactNode> = {
 
 export function UniversalDrilldown() {
   const { stack, push, pop, clear } = useDrilldown();
+  const { currentRole } = useIndustryRole();
   const [isOpen, setIsOpen] = useState(false);
   const [propertyData, setPropertyData] = useState<Property | null>(null);
 
@@ -89,11 +94,6 @@ export function UniversalDrilldown() {
           <div className="flex items-center gap-4">
             {currentEntity.type === "PROPERTY" && propertyData && (
               <div className="flex items-center gap-4 border-r border-slate-800 pr-4">
-                <div className="text-right">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Deal Score</div>
-                  <div className="text-lg font-black text-emerald-400">{propertyData.dealScore || 50}/100</div>
-                </div>
-                
                 <button 
                   className="flex items-center px-3 py-1.5 rounded-md gap-2 text-indigo-400 border border-indigo-900/30 hover:bg-indigo-950 transition-colors"
                   onClick={async () => {
@@ -143,6 +143,19 @@ export function UniversalDrilldown() {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           
+          {/* AI Scorecard Engine */}
+          {currentEntity.type === "PROPERTY" && propertyData && (
+            <div className="mb-6">
+              {currentRole === "LAND_INVESTOR" || currentRole === "COMMERCIAL_BROKER" || currentRole === "LANDMAN" ? (
+                <InvestmentScorecard propertyData={propertyData} />
+              ) : currentRole === "PROPERTY_MANAGER" || currentRole === "RESIDENTIAL_REALTOR" ? (
+                <RentalScorecard propertyData={propertyData} />
+              ) : (
+                <DevelopmentScorecard propertyData={propertyData} />
+              )}
+            </div>
+          )}
+
           {/* AI Executive Summary Injection */}
           <ExecutiveSummary entityId={currentEntity.id} entityType={currentEntity.type} />
 
@@ -155,8 +168,10 @@ export function UniversalDrilldown() {
           {/* Conditional Content based on Entity Type */}
           {currentEntity.type === "PROPERTY" && (
             <>
-              {/* Omni-Asset Decision Simulator */}
-              <DecisionSimulator propertyData={propertyData} />
+              {/* Omni-Asset Decision Simulator - Only for Investors/Developers */}
+              {(currentRole === "LAND_INVESTOR" || currentRole === "DEVELOPER" || currentRole === "RENEWABLE_DEVELOPER") && (
+                <DecisionSimulator propertyData={propertyData} />
+              )}
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <div className="flex flex-col gap-6">
