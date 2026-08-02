@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useIndustryRole } from "./IndustryRoleProvider";
+import { getProactiveInsights } from "@/actions/copilot";
 
 interface CoPilotContextType {
   isOpen: boolean;
@@ -19,6 +21,7 @@ export function CoPilotProvider({ children }: { children: React.ReactNode }) {
     { role: "ai", content: "Good morning. I am monitoring your workspace. Let me know if you need any property or financial analysis." }
   ]);
   const pathname = usePathname();
+  const { currentRole } = useIndustryRole();
 
   const addMessage = (role: "system" | "user" | "ai", content: string) => {
     setMessages((prev) => [...prev, { role, content }]);
@@ -38,10 +41,22 @@ export function CoPilotProvider({ children }: { children: React.ReactNode }) {
     addMessage("ai", advice);
   };
 
+  // Trigger proactive insights when role changes
+  useEffect(() => {
+    let isMounted = true;
+    getProactiveInsights(currentRole).then((insight) => {
+      if (isMounted) {
+        addMessage("ai", insight);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [currentRole]);
+
   // Trigger advice when navigating to certain pages
   useEffect(() => {
     if (pathname === "/discover") {
-      setTimeout(triggerContextualAdvice, 3000); // Proactive tip after 3 seconds
+      const timer = setTimeout(triggerContextualAdvice, 3000); // Proactive tip after 3 seconds
+      return () => clearTimeout(timer);
     }
   }, [pathname]);
 
