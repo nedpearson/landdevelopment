@@ -139,12 +139,18 @@ export interface LeaseRecord {
   primaryTermYears: number;
   expirationDate: string;
   bonusPerNma: number;
-  royaltyFraction: RationalFraction;
+  
+  royaltyNumerator: bigint;
+  royaltyDenominator: bigint;
+  nriNumerator?: bigint;
+  nriDenominator?: bigint;
+  
+  depthSeveranceTop?: string;
+  depthSeveranceBottom?: string;
+
   hasPughClause: boolean;
   hasShutInClause: boolean;
   hasContinuousDevelopment: boolean;
-  hbpWellName?: string;
-  hbpUnitName?: string;
   status: 'ACTIVE' | 'HBP' | 'SHUT_IN' | 'EXPIRED' | 'SURRENDERED';
 }
 
@@ -154,10 +160,13 @@ export interface CurativeItem {
   titleRequirement: string;
   defectCategory: 'MISSING_DEED' | 'PROBATE_HEIRSHIP' | 'MARITAL_STATUS' | 'UNRELEASED_LIEN' | 'NAME_DISCREPANCY';
   severity: 'CRITICAL_BLOCKER' | 'MAJOR' | 'MINOR';
-  status: 'OPEN' | 'DOCUMENT_REQUESTED' | 'IN_REVIEW' | 'CLEARED';
+  status: 'OPEN' | 'DOCUMENT_REQUESTED' | 'IN_REVIEW' | 'PENDING_REVIEW' | 'CLEARED' | 'WAIVED';
   assignedTo: string;
   targetCompletionDate: string;
-  evidenceNotes?: string;
+  
+  resolvedBy?: string;
+  resolvedAt?: string;
+  resolutionNotes?: string;
 }
 
 export interface RightOfWaySegment {

@@ -184,7 +184,9 @@ enum CurativeStatus {
   OPEN
   DOCUMENT_REQUESTED
   IN_REVIEW
+  PENDING_REVIEW
   CLEARED
+  WAIVED
 }
 
 enum EstateType {
@@ -670,22 +672,31 @@ model Exception {
 }
 
 model LeaseRecord {
-  id                       String    @id @default(uuid()) @db.Uuid
-  tractId                  String    @map("tract_id") @db.Uuid
-  tract                    LandTract @relation(fields: [tractId], references: [id], onDelete: Cascade)
-  leaseNumber              String    @map("lease_number")
-  lessorName               String    @map("lessor_name")
-  lesseeName               String    @map("lessee_name")
-  effectiveDate            DateTime  @map("effective_date")
-  primaryTermYears         Int       @default(3) @map("primary_term_years")
-  expirationDate           DateTime  @map("expiration_date")
-  bonusPerNma              Float     @default(0) @map("bonus_per_nma")
-  royaltyNumerator         Int       @default(1) @map("royalty_numerator")
-  royaltyDenominator       Int       @default(5) @map("royalty_denominator")
-  hasPughClause            Boolean   @default(true) @map("has_pugh_clause")
-  hasShutInClause          Boolean   @default(true) @map("has_shut_in_clause")
-  hasContinuousDevelopment Boolean   @default(false) @map("has_continuous_development")
-  status                   String    @default("ACTIVE")
+  id               String    @id @default(uuid()) @db.Uuid
+  tractId          String    @map("tract_id") @db.Uuid
+  tract            LandTract @relation(fields: [tractId], references: [id], onDelete: Cascade)
+  leaseNumber      String    @map("lease_number")
+  lessorName       String    @map("lessor_name")
+  lesseeName       String    @map("lessee_name")
+  effectiveDate    DateTime  @map("effective_date")
+  primaryTermYears Int       @default(3) @map("primary_term_years")
+  expirationDate   DateTime  @map("expiration_date")
+  bonusPerNma      Float     @default(0) @map("bonus_per_nma")
+
+  // Fractional Math
+  royaltyNumerator   BigInt  @default(1) @map("royalty_numerator")
+  royaltyDenominator BigInt  @default(5) @map("royalty_denominator") // default 1/5
+  nriNumerator       BigInt? @map("nri_numerator")
+  nriDenominator     BigInt? @map("nri_denominator")
+
+  // Depth Severances
+  depthSeveranceTop    String? @map("depth_severance_top")
+  depthSeveranceBottom String? @map("depth_severance_bottom")
+
+  hasPughClause            Boolean @default(true) @map("has_pugh_clause")
+  hasShutInClause          Boolean @default(true) @map("has_shut_in_clause")
+  hasContinuousDevelopment Boolean @default(false) @map("has_continuous_development")
+  status                   String  @default("ACTIVE")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -704,6 +715,11 @@ model CurativeItem {
   status               CurativeStatus   @default(OPEN)
   assignedTo           String           @map("assigned_to")
   targetCompletionDate DateTime?        @map("target_completion_date")
+
+  // Resolution Tracking
+  resolvedBy      String?   @map("resolved_by")
+  resolvedAt      DateTime? @map("resolved_at")
+  resolutionNotes String?   @map("resolution_notes")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
