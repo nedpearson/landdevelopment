@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, FractionBadge, EstateBadge } from '@land-intelligence/ui';
 import { MapPin, Plus, Scale, FileText, CheckCircle2, ShieldAlert, Layers } from 'lucide-react';
+import { TractMap } from "../../components/gis/TractMap";
 import Link from 'next/link';
 import { rationalToDecimal } from '@land-intelligence/domain';
 
@@ -69,18 +70,19 @@ export default function TractsPage() {
         </div>
       </div>
 
-      {/* Map UI Placeholder */}
+      {/* Interactive Map UI */}
       <Card className="border-slate-800 bg-slate-900 overflow-hidden relative">
-        <div className="absolute top-4 left-4 z-10">
-          <Badge variant="default" className="bg-slate-950/80 backdrop-blur-sm border-slate-800">
-            <MapPin className="w-3 h-3 mr-1 inline" /> GIS Map Layer (Placeholder)
+        <div className="absolute top-4 left-4 z-10 pointer-events-none">
+          <Badge variant="default" className="bg-slate-950/80 backdrop-blur-sm border-slate-800 pointer-events-auto">
+            <MapPin className="w-3 h-3 mr-1 inline" /> GIS Map Layer
           </Badge>
         </div>
-        <div className="h-64 w-full bg-slate-950 flex items-center justify-center relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-          <div className="text-center space-y-2 max-w-sm">
-            <Layers className="w-8 h-8 text-slate-700 mx-auto" />
-            <p className="text-xs text-slate-500 font-mono">Mapbox GL JS integration pending geometry hydration. Tract polygons will render here.</p>
-          </div>
+        <div className="h-64 w-full bg-slate-950 flex items-center justify-center relative">
+          <TractMap 
+            tracts={tracts} 
+            selectedTractId={selectedTractId}
+            onTractSelect={(id) => setSelectedTractId(id || '')}
+          />
         </div>
       </Card>
 
