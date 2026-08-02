@@ -70,7 +70,7 @@ export default function ROWPage() {
                   <td className="p-3 text-emerald-400 font-bold">${s.totalDamageUsd.toLocaleString()}</td>
                   <td className="p-3 text-amber-300">${s.cropDamageUsd.toLocaleString()}</td>
                   <td className="p-3">
-                    <Badge variant="success font-mono">{s.status}</Badge>
+                    <Badge variant="success" className="font-mono">{s.status}</Badge>
                   </td>
                 </tr>
               ))}

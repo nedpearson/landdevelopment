@@ -71,7 +71,7 @@ export default function RenewablesPage() {
                   <td className="p-3 text-emerald-400 font-bold">${p.leaseFeePerAcre.toFixed(2)} / AC / yr</td>
                   <td className="p-3 text-purple-300">{p.substationDistanceMiles} mi</td>
                   <td className="p-3">
-                    <Badge variant="success font-mono">{p.status}</Badge>
+                    <Badge variant="success" className="font-mono">{p.status}</Badge>
                   </td>
                 </tr>
               ))}

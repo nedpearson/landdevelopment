@@ -22,7 +22,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="success font-mono">STAGE: QUALIFIED (DEAL SCORE 84)</Badge>
+          <Badge variant="success" className="font-mono">STAGE: QUALIFIED (DEAL SCORE 84)</Badge>
         </div>
       </div>
 

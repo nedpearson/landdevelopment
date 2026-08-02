@@ -66,7 +66,7 @@ export default function LeasesPage() {
                   <td className="p-3 text-emerald-400 font-bold">{l.royaltyFraction}</td>
                   <td className="p-3 text-slate-300">{l.pughClause}</td>
                   <td className="p-3">
-                    <Badge variant="success font-mono">{l.hbpStatus}</Badge>
+                    <Badge variant="success" className="font-mono">{l.hbpStatus}</Badge>
                   </td>
                   <td className="p-3 text-purple-300 font-semibold">{l.producingWell}</td>
                 </tr>

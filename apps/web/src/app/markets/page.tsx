@@ -29,7 +29,7 @@ export default function MarketsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-white">Costilla County, CO</CardTitle>
-                <Badge variant="success font-mono">HIGH DEMAND</Badge>
+                <Badge variant="success" className="font-mono">HIGH DEMAND</Badge>
               </div>
               <CardDescription>San Luis Valley Region | Off-Grid & Recreational Land</CardDescription>
             </div>
@@ -79,7 +79,7 @@ export default function MarketsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-white">Reeves County, TX (Permian Basin)</CardTitle>
-                <Badge variant="warning font-mono">ENERGY & MINERALS</Badge>
+                <Badge variant="warning" className="font-mono">ENERGY & MINERALS</Badge>
               </div>
               <CardDescription>Delaware Basin | Wolfcamp A & B Mineral Rights</CardDescription>
             </div>

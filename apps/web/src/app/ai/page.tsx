@@ -22,7 +22,7 @@ export default function AIPage() {
             Execute natural language market research, title gap analysis, runsheet summarization, and offer generation with source citations.
           </p>
         </div>
-        <Badge variant="success font-mono">MODEL: GROUNDED RAG v2.0</Badge>
+        <Badge variant="success" className="font-mono">MODEL: GROUNDED RAG v2.0</Badge>
       </div>
 
       {/* Interactive AI Prompt Console */}

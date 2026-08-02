@@ -33,7 +33,7 @@ export default function OwnershipPage() {
             Exact rational fraction arithmetic for NMA, NRI, WI, ORRI, and NPRI without floating-point rounding errors.
           </p>
         </div>
-        <Badge variant="success font-mono">ARITHMETIC ENGINE: EXACT RATIONAL</Badge>
+        <Badge variant="success" className="font-mono">ARITHMETIC ENGINE: EXACT RATIONAL</Badge>
       </div>
 
       {/* Interactive Rational Math Calculator */}

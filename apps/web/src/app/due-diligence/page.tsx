@@ -50,7 +50,7 @@ export default function DueDiligencePage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-white text-sm">2. Tax Delinquency & Back Taxes Clearance</h3>
-                  <Badge variant="success font-mono">VERIFIED CLEAR</Badge>
+                  <Badge variant="success" className="font-mono">VERIFIED CLEAR</Badge>
                 </div>
                 <p className="text-slate-400 mt-0.5">
                   Property: APN 123-456-789 | Status: $0.00 delinquent tax balance verified with Costilla Treasurer.
