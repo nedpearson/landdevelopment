@@ -137,8 +137,8 @@ app.get('/api/v1/landman/tracts', (req: Request, res: Response) => {
 // Rational Fractional Ownership Calculator API
 app.post('/api/v1/landman/ownership/calculate', (req: Request, res: Response) => {
   const { grossAcres, mineralNum, mineralDen, royaltyNum, royaltyDen } = req.body;
-  const mineralInterest = { numerator: Number(mineralNum || 1), denominator: Number(mineralDen || 4) };
-  const leaseRoyalty = { numerator: Number(royaltyNum || 1), denominator: Number(royaltyDen || 5) };
+  const mineralInterest = { numerator: BigInt(mineralNum || 1), denominator: BigInt(mineralDen || 4) };
+  const leaseRoyalty = { numerator: BigInt(royaltyNum || 1), denominator: BigInt(royaltyDen || 5) };
 
   const mineralDecimal = rationalToDecimal(mineralInterest);
   const leaseRoyaltyDecimal = rationalToDecimal(leaseRoyalty);
@@ -148,8 +148,8 @@ app.post('/api/v1/landman/ownership/calculate', (req: Request, res: Response) =>
 
   res.json({
     grossAcres: Number(grossAcres || 160),
-    mineralInterestFraction: mineralInterest,
-    leaseRoyaltyFraction: leaseRoyalty,
+    mineralInterestFraction: { numerator: mineralInterest.numerator.toString(), denominator: mineralInterest.denominator.toString() },
+    leaseRoyaltyFraction: { numerator: leaseRoyalty.numerator.toString(), denominator: leaseRoyalty.denominator.toString() },
     netMineralAcres,
     netRevenueInterest,
     netRevenueInterestPercentage: (netRevenueInterest * 100).toFixed(6),
