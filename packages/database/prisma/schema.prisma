@@ -206,9 +206,22 @@ enum EstateType {
   RIGHT_OF_WAY
 }
 
+enum PropertyClass {
+  VACANT_LAND
+  RESIDENTIAL_SINGLE_FAMILY
+  RESIDENTIAL_MULTI_FAMILY
+  COMMERCIAL_RETAIL
+  COMMERCIAL_OFFICE
+  INDUSTRIAL
+  AGRICULTURAL
+  MIXED_USE
+  SPECIAL_PURPOSE
+}
+
 model Property {
   id               String                 @id @default(uuid()) @db.Uuid
   organizationId   String                 @default("org_default") @map("organization_id")
+  propertyClass    PropertyClass          @default(VACANT_LAND) @map("property_class")
   apn              String
   county           String
   state            String
@@ -234,6 +247,8 @@ model Property {
   zoningAssessment        Json @default("{}") @map("zoning_assessment")
   environmentalAssessment Json @default("{}") @map("environmental_assessment")
   utilityAssessment       Json @default("{}") @map("utility_assessment")
+  buildingAssessment      Json @default("{}") @map("building_assessment")
+  rentalAssessment        Json @default("{}") @map("rental_assessment")
 
   // Geospatial Data
   centroidLat Float? @map("centroid_lat")

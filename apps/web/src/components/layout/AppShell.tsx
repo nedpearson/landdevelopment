@@ -31,6 +31,7 @@ import {
 import { UniversalSearch } from '../ui/UniversalSearch';
 import { AICoPilot } from '../ui/AICoPilot';
 import { ExplainScreenButton } from '../ui/ExplainScreenButton';
+import { RoleSwitcher } from '../ui/RoleSwitcher';
 
 const EXPERT_NAV_ITEMS = [
   { label: 'Landman Dashboard', href: '/', icon: LayoutDashboard },
@@ -126,6 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="flex items-center gap-4">
+            <RoleSwitcher />
             <ExplainScreenButton />
             <button 
               onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
