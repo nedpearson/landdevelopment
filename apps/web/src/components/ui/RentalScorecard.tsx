@@ -1,14 +1,32 @@
 "use client";
 
-import React from "react";
-import { Home, Percent, Users, Key } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Home, Percent, Users, Key, Loader2 } from "lucide-react";
 import type { Property } from "@land-intelligence/database";
+import { generateRentalAssessment } from "@/actions/aiEngines";
 
 export function RentalScorecard({ propertyData }: { propertyData: Property }) {
-  const capRate = 8.5; // Simulated ML calculation
-  const occupancy = 94.2;
-  const grossRent = 125000;
-  
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    generateRentalAssessment(propertyData.id).then((res) => {
+      setData(res);
+      setLoading(false);
+    });
+  }, [propertyData.id]);
+
+  if (loading) {
+    return (
+      <div className="bg-slate-900 border border-sky-900/50 rounded-xl p-6 flex items-center justify-center text-sky-400">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+        Running Rental Yield Engine...
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
   return (
     <div className="bg-slate-900 border border-sky-900/50 rounded-xl overflow-hidden relative group">
       <div className="absolute top-0 right-0 p-3 opacity-10">
@@ -26,22 +44,25 @@ export function RentalScorecard({ propertyData }: { propertyData: Property }) {
       <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Cap Rate (Pro Forma)</div>
-          <div className="text-2xl font-black text-white">{capRate}%</div>
+          <div className="text-2xl font-black text-white">{data.capRate}%</div>
         </div>
         <div>
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Market Occupancy</div>
-          <div className="text-2xl font-black text-white">{occupancy}%</div>
+          <div className="text-2xl font-black text-white">{data.occupancy}%</div>
         </div>
         <div>
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Gross Ann. Rent</div>
-          <div className="text-lg font-bold text-sky-400">${grossRent.toLocaleString()}</div>
+          <div className="text-lg font-bold text-sky-400">${data.grossRent.toLocaleString()}</div>
         </div>
         <div>
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Tenant Quality</div>
           <div className="text-lg font-bold text-emerald-400 flex items-center gap-1">
-            <Users className="w-4 h-4" /> High (A-Class)
+            <Users className="w-4 h-4" /> {data.tenantQuality}
           </div>
         </div>
+      </div>
+      <div className="px-5 py-3 bg-sky-950/30 border-t border-sky-900/30 text-sm text-sky-200/80">
+        <strong>AI Insight:</strong> {data.narrative}
       </div>
     </div>
   );
