@@ -28,41 +28,58 @@ export function DevelopmentScorecard({ propertyData }: { propertyData: Property 
   if (!data) return null;
 
   return (
-    <div className="bg-slate-900 border border-orange-900/50 rounded-xl overflow-hidden relative group">
-      <div className="absolute top-0 right-0 p-3 opacity-10">
-        <HardHat className="w-24 h-24" />
-      </div>
-      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
-        <h3 className="font-semibold text-orange-400 flex items-center gap-2">
-          <Hammer className="w-4 h-4" />
+    <div className="glass-panel rounded-2xl overflow-hidden relative group">
+      <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-500/10 blur-[100px] rounded-full pointer-events-none" />
+      
+      <div className="p-5 border-b border-white/[0.04] flex justify-between items-center relative z-10">
+        <h3 className="font-semibold text-slate-100 flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+            <Hammer className="w-4 h-4 text-orange-400" />
+          </div>
           Highest & Best Use Engine
         </h3>
-        <span className="text-[10px] font-mono bg-orange-950 text-orange-300 px-2 py-0.5 rounded border border-orange-900">
-          ML MODEL: DEV-03
+        <span className="text-[10px] font-mono font-medium tracking-widest text-slate-500 uppercase px-2 py-1 bg-white/[0.02] border border-white/[0.04] rounded-md">
+          Model: DEV-03
         </span>
       </div>
-      <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+      
+      <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Max Density</div>
-          <div className="text-2xl font-black text-white">{data.maxDensity} <span className="text-sm font-medium text-slate-500">Units</span></div>
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Max Density</div>
+          <div className="text-3xl font-semibold tracking-tight text-white mb-2">{data.maxDensity} <span className="text-sm text-slate-500 font-medium ml-1">Units</span></div>
+          <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full" style={{ width: `${Math.min((data.maxDensity / 150) * 100, 100)}%` }} />
+          </div>
         </div>
+        
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Est. Build Cost</div>
-          <div className="text-2xl font-black text-white">${(data.estCost / 1000000).toFixed(1)}<span className="text-sm font-medium text-slate-500">M</span></div>
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Est. Build Cost</div>
+          <div className="text-3xl font-semibold tracking-tight text-white text-gradient">${(data.estCost / 1000000).toFixed(1)}<span className="text-sm text-slate-500 font-medium ml-1">M</span></div>
         </div>
+        
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Zoning Friction</div>
-          <div className="text-lg font-bold text-emerald-400">{data.zoningFriction}</div>
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Zoning Friction</div>
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${data.zoningFriction === 'Low' ? 'bg-emerald-400 text-emerald-400' : 'bg-amber-400 text-amber-400'}`} />
+            <span className="text-lg font-medium text-slate-200">{data.zoningFriction}</span>
+          </div>
         </div>
+        
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Utilities</div>
-          <div className="text-lg font-bold text-amber-400 flex items-center gap-1">
-            <Zap className="w-4 h-4" /> {data.utilities}
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Utilities</div>
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-amber-400" />
+            <span className="text-lg font-medium text-slate-200">{data.utilities}</span>
           </div>
         </div>
       </div>
-      <div className="px-5 py-3 bg-orange-950/30 border-t border-orange-900/30 text-sm text-orange-200/80">
-        <strong>AI Insight:</strong> {data.narrative}
+      
+      <div className="px-6 py-4 bg-white/[0.01] border-t border-white/[0.04] relative z-10 flex gap-4">
+        <div className="w-1 h-full min-h-[40px] bg-gradient-to-b from-orange-500 to-transparent rounded-full opacity-50 shrink-0" />
+        <p className="text-sm text-slate-300 leading-relaxed font-medium">
+          <span className="text-orange-400 font-semibold mr-2">AI Insight:</span>
+          {data.narrative}
+        </p>
       </div>
     </div>
   );

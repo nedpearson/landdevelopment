@@ -28,41 +28,58 @@ export function RentalScorecard({ propertyData }: { propertyData: Property }) {
   if (!data) return null;
 
   return (
-    <div className="bg-slate-900 border border-sky-900/50 rounded-xl overflow-hidden relative group">
-      <div className="absolute top-0 right-0 p-3 opacity-10">
-        <Home className="w-24 h-24" />
-      </div>
-      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
-        <h3 className="font-semibold text-sky-400 flex items-center gap-2">
-          <Key className="w-4 h-4" />
+    <div className="glass-panel rounded-2xl overflow-hidden relative group">
+      <div className="absolute -top-24 -right-24 w-64 h-64 bg-sky-500/10 blur-[100px] rounded-full pointer-events-none" />
+      
+      <div className="p-5 border-b border-white/[0.04] flex justify-between items-center relative z-10">
+        <h3 className="font-semibold text-slate-100 flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
+            <Key className="w-4 h-4 text-sky-400" />
+          </div>
           Rental Yield Engine
         </h3>
-        <span className="text-[10px] font-mono bg-sky-950 text-sky-300 px-2 py-0.5 rounded border border-sky-900">
-          ML MODEL: RNT-02
+        <span className="text-[10px] font-mono font-medium tracking-widest text-slate-500 uppercase px-2 py-1 bg-white/[0.02] border border-white/[0.04] rounded-md">
+          Model: RNT-02
         </span>
       </div>
-      <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+      
+      <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Cap Rate (Pro Forma)</div>
-          <div className="text-2xl font-black text-white">{data.capRate}%</div>
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Cap Rate (Pro Forma)</div>
+          <div className="text-3xl font-semibold tracking-tight text-white mb-2">{data.capRate}%</div>
+          <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-sky-500 to-blue-400 rounded-full" style={{ width: `${Math.min(data.capRate * 10, 100)}%` }} />
+          </div>
         </div>
+        
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Market Occupancy</div>
-          <div className="text-2xl font-black text-white">{data.occupancy}%</div>
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Market Occupancy</div>
+          <div className="text-3xl font-semibold tracking-tight text-white mb-2">{data.occupancy}%</div>
+          <div className="h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-slate-400 to-slate-200 rounded-full" style={{ width: `${data.occupancy}%` }} />
+          </div>
         </div>
+        
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Gross Ann. Rent</div>
-          <div className="text-lg font-bold text-sky-400">${data.grossRent.toLocaleString()}</div>
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Gross Ann. Rent</div>
+          <div className="text-xl font-medium text-slate-200">${data.grossRent.toLocaleString()}</div>
         </div>
+        
         <div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Tenant Quality</div>
-          <div className="text-lg font-bold text-emerald-400 flex items-center gap-1">
-            <Users className="w-4 h-4" /> {data.tenantQuality}
+          <div className="text-xs text-slate-500 font-medium tracking-wide uppercase mb-2">Tenant Quality</div>
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${data.tenantQuality === 'A-Class' ? 'bg-emerald-400 text-emerald-400' : 'bg-amber-400 text-amber-400'}`} />
+            <span className="text-lg font-medium text-slate-200">{data.tenantQuality}</span>
           </div>
         </div>
       </div>
-      <div className="px-5 py-3 bg-sky-950/30 border-t border-sky-900/30 text-sm text-sky-200/80">
-        <strong>AI Insight:</strong> {data.narrative}
+      
+      <div className="px-6 py-4 bg-white/[0.01] border-t border-white/[0.04] relative z-10 flex gap-4">
+        <div className="w-1 h-full min-h-[40px] bg-gradient-to-b from-sky-500 to-transparent rounded-full opacity-50 shrink-0" />
+        <p className="text-sm text-slate-300 leading-relaxed font-medium">
+          <span className="text-sky-400 font-semibold mr-2">AI Insight:</span>
+          {data.narrative}
+        </p>
       </div>
     </div>
   );

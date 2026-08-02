@@ -62,29 +62,29 @@ export function UniversalDrilldown() {
     <>
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 z-[100] bg-slate-950/40 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`fixed inset-0 z-[100] bg-[#030303]/70 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         onClick={clear}
       />
 
       {/* Slide-over Panel */}
-      <div className={`fixed inset-y-0 right-0 z-[101] w-full max-w-4xl bg-slate-950 shadow-2xl border-l border-slate-800 transition-transform duration-300 transform ${isOpen ? "translate-x-0" : "translate-x-full"} flex flex-col`}>
+      <div className={`fixed inset-y-0 right-0 z-[101] w-full max-w-4xl bg-[#0a0a0a] shadow-2xl border-l border-white/[0.05] transition-transform duration-300 transform ${isOpen ? "translate-x-0" : "translate-x-full"} flex flex-col`}>
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50 gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between p-6 border-b border-white/[0.05] bg-[#0a0a0a] gap-4 shrink-0">
+          <div className="flex items-center gap-4">
             {hasHistory && (
-              <button onClick={pop} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
+              <button onClick={pop} className="p-2 hover:bg-white/[0.04] rounded-lg text-slate-400 hover:text-white transition-colors">
                 <ChevronLeft className="w-5 h-5" />
               </button>
             )}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-800 rounded-lg border border-slate-700">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-white/[0.02] rounded-xl border border-white/[0.04] shadow-sm">
                 {ICONS[currentEntity.type]}
               </div>
               <div>
-                <div className="text-xs text-slate-400 font-medium tracking-wider uppercase">{currentEntity.type}</div>
+                <div className="text-[10px] text-slate-500 font-sans tracking-widest uppercase mb-0.5">{currentEntity.type}</div>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-white leading-tight">{currentEntity.label}</h2>
+                  <h2 className="text-2xl font-semibold text-slate-100 tracking-tight leading-tight">{currentEntity.label}</h2>
                   {currentEntity.type === "PROPERTY" && (
                     <PropertyHealthBadge entityId={currentEntity.id} propertyData={propertyData} />
                   )}
@@ -95,9 +95,9 @@ export function UniversalDrilldown() {
           
           <div className="flex items-center gap-4">
             {currentEntity.type === "PROPERTY" && propertyData && (
-              <div className="flex items-center gap-4 border-r border-slate-800 pr-4">
+              <div className="flex items-center gap-4 border-r border-white/[0.05] pr-4">
                 <button 
-                  className="flex items-center px-3 py-1.5 rounded-md gap-2 text-indigo-400 border border-indigo-900/30 hover:bg-indigo-950 transition-colors"
+                  className="flex items-center px-4 py-2 rounded-lg gap-2 text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-colors shadow-sm text-sm font-medium"
                   onClick={async () => {
                     try {
                       const response = await fetch('/api/documents', {
@@ -133,17 +133,17 @@ export function UniversalDrilldown() {
                 </button>
               </div>
             )}
-            <div className="text-xs text-slate-500 font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800 hidden sm:block">
-              ID: {currentEntity.id.slice(0, 8)}...
+            <div className="text-xs text-slate-500 font-sans bg-white/[0.02] px-2 py-1 rounded-md border border-white/[0.04] hidden sm:block">
+              ID: {currentEntity.id.slice(0, 8)}
             </div>
-            <button onClick={clear} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
-              <X className="w-6 h-6" />
+            <button onClick={clear} className="p-2 hover:bg-white/[0.04] rounded-lg text-slate-400 hover:text-slate-200 transition-colors">
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 animate-fade-in">
           
           {/* AI Scorecard Engine */}
           {currentEntity.type === "PROPERTY" && propertyData && (
