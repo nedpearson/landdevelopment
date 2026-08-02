@@ -1,10 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
 import { ShoppingBag, CheckCircle2, UserCheck, ShieldCheck, Mail } from 'lucide-react';
+import { getBuyers } from '@/actions/crmActions';
 
 export default function BuyersPage() {
+  const [buyers, setBuyers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getBuyers().then(data => {
+      setBuyers(data);
+      setIsLoading(false);
+    });
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -45,21 +56,39 @@ export default function BuyersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-semibold text-white">Apex Land Holdings LLC</td>
-                <td className="p-3">acquisitions@apexland.com</td>
-                <td className="p-3 text-emerald-400">Costilla CO, Elko NV</td>
-                <td className="p-3 text-slate-200">$250,000</td>
-                <td className="p-3">
-                  <Badge variant="success">POF VERIFIED ($500K)</Badge>
-                </td>
-                <td className="p-3">4 Properties</td>
-                <td className="p-3">
-                  <Button variant="outline" size="sm">
-                    Match Properties
-                  </Button>
-                </td>
-              </tr>
+              {buyers.length === 0 && !isLoading && (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-500">No buyers found in the database.</td>
+                </tr>
+              )}
+              {buyers.map(buyer => (
+                <tr key={buyer.id} className="hover:bg-slate-800/40">
+                  <td className="p-3 font-semibold text-white">{buyer.name}</td>
+                  <td className="p-3">{buyer.email}</td>
+                  <td className="p-3 text-emerald-400">{JSON.stringify(buyer.criteria?.counties || 'Any')}</td>
+                  <td className="p-3 text-slate-200">${(buyer.criteria?.maxBudget || 0).toLocaleString()}</td>
+                  <td className="p-3">
+                    {buyer.proofOfFundsVerified ? (
+                       <Badge variant="success">POF VERIFIED</Badge>
+                    ) : (
+                       <Badge variant="default">PENDING</Badge>
+                    )}
+                  </td>
+                  <td className="p-3">{buyer.purchasedPropertiesCount} Properties</td>
+                  <td className="p-3">
+                    <Button variant="outline" size="sm">
+                      Match Properties
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+              
+              {buyers.length === 0 && isLoading && (
+                 <tr className="hover:bg-slate-800/40 opacity-50">
+                   <td className="p-3 font-semibold text-white">Loading database...</td>
+                   <td colSpan={6}></td>
+                 </tr>
+              )}
             </tbody>
           </table>
         </div>

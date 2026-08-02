@@ -1,10 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
 import { Users, Mail, Phone, Calendar, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { getSellers } from '@/actions/crmActions';
 
 export default function SellersPage() {
+  const [sellers, setSellers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getSellers().then(data => {
+      setSellers(data);
+      setIsLoading(false);
+    });
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -45,19 +56,40 @@ export default function SellersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-semibold text-white">Estate of Henry T. Miller</td>
-                <td className="p-3 text-emerald-400">APN: 123-456-789 (160 AC)</td>
-                <td className="p-3">miller.trust@example.com</td>
-                <td className="p-3">
-                  <Badge variant="danger">HIGH MOTIVATION</Badge>
-                </td>
-                <td className="p-3 text-slate-200">$75,000</td>
-                <td className="p-3">2026-04-12</td>
-                <td className="p-3">
-                  <Badge variant="warning">OFFER SENT (AWAITING SIGNATURE)</Badge>
-                </td>
-              </tr>
+              {sellers.length === 0 && !isLoading && (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-500">No sellers found in the database.</td>
+                </tr>
+              )}
+              {sellers.map((seller) => {
+                const primaryProperty = seller.properties?.[0]?.property;
+                return (
+                  <tr key={seller.id} className="hover:bg-slate-800/40">
+                    <td className="p-3 font-semibold text-white">{seller.name}</td>
+                    <td className="p-3 text-emerald-400">
+                      {primaryProperty ? `APN: ${primaryProperty.apn} (${primaryProperty.acreage} AC)` : 'None'}
+                    </td>
+                    <td className="p-3">{seller.email || seller.phone || 'N/A'}</td>
+                    <td className="p-3">
+                      <Badge variant={seller.motivationLevel === 'HIGH' || seller.motivationLevel === 'URGENT' ? 'danger' : 'info'}>
+                        {seller.motivationLevel} MOTIVATION
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-slate-200">{seller.askingPrice ? `$${seller.askingPrice.toLocaleString()}` : 'Unknown'}</td>
+                    <td className="p-3">{new Date(seller.updatedAt).toISOString().split('T')[0]}</td>
+                    <td className="p-3">
+                      <Badge variant="warning">AWAITING ACTION</Badge>
+                    </td>
+                  </tr>
+                );
+              })}
+              
+              {sellers.length === 0 && isLoading && (
+                 <tr className="hover:bg-slate-800/40 opacity-50">
+                   <td className="p-3 font-semibold text-white">Loading database...</td>
+                   <td colSpan={6}></td>
+                 </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@land-intelligence/database": "workspace:*",
     "@land-intelligence/domain": "workspace:*",
     "@land-intelligence/integrations": "workspace:*",
     "@land-intelligence/ui": "workspace:*",
@@ -16,6 +17,7 @@
     "lucide-react": "^0.380.0",
     "mapbox-gl": "^3.27.0",
     "next": "^14.2.35",
+    "openai": "^7.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-map-gl": "^8.1.2",

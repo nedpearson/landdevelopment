@@ -863,3 +863,54 @@ model TractOwnership {
   @@index([estateId])
   @@map("tract_ownerships")
 }
+
+// -------------------------------------------------------------
+// SIMPLE MODE / PROGRESSIVE EXPERIENCE MODELS
+// -------------------------------------------------------------
+
+enum ExperienceLevel {
+  SIMPLE
+  GUIDED
+  EXPERT
+}
+
+model UserExperiencePreference {
+  id              String          @id @default(uuid())
+  userId          String          @unique @map("user_id")
+  experienceMode  ExperienceLevel @default(EXPERT) @map("experience_mode")
+  hasCompletedTour Boolean        @default(false) @map("has_completed_tour")
+  
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@map("user_experience_preferences")
+}
+
+model OnboardingProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  primaryGoal     String?  @map("primary_goal") // e.g. "Find land to build on"
+  experienceLevel String?  @map("experience_level")
+  targetMarket    String?  @map("target_market")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("onboarding_profiles")
+}
+
+model GlossaryTerm {
+  id                  String   @id @default(uuid())
+  professionalTerm    String   @unique @map("professional_term")
+  simpleLabel         String   @map("simple_label")
+  shortExplanation    String   @map("short_explanation")
+  detailedExplanation String?  @map("detailed_explanation")
+  example             String?
+  whyItMatters        String?  @map("why_it_matters")
+  relatedTerms        String[] @map("related_terms")
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@map("glossary_terms")
+}

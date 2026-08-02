@@ -1,10 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
 import { Building2, DollarSign, Calendar, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { getPortfolioHoldings } from '@/actions/crmActions';
 
 export default function PortfolioPage() {
+  const [holdings, setHoldings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getPortfolioHoldings().then(data => {
+      setHoldings(data);
+      setIsLoading(false);
+    });
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -17,7 +28,7 @@ export default function PortfolioPage() {
             Track owned inventory, cost basis, unrealized profit, seller-financing notes, interest collected, and payment schedules.
           </p>
         </div>
-        <Badge variant="success">3 Owned Holdings | 1 Note Active</Badge>
+        <Badge variant="success">{holdings.length} Owned Holdings | 1 Note Active</Badge>
       </div>
 
       {/* Portfolio Holdings Table */}
@@ -41,17 +52,32 @@ export default function PortfolioPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
-              <tr className="hover:bg-slate-800/40">
-                <td className="p-3 font-semibold text-white">APN: 123-456-789 (Costilla, CO)</td>
-                <td className="p-3">2026-02-10</td>
-                <td className="p-3">$10,800</td>
-                <td className="p-3 text-slate-200">$11,200</td>
-                <td className="p-3 text-emerald-400 font-bold">$24,000</td>
-                <td className="p-3 text-emerald-400 font-bold">+$12,800 (+114%)</td>
-                <td className="p-3">
-                  <Badge variant="info">OWNED HELD</Badge>
-                </td>
-              </tr>
+              {holdings.length === 0 && !isLoading && (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-500">No active portfolio holdings found in the database.</td>
+                </tr>
+              )}
+              {holdings.map((holding) => (
+                <tr key={holding.id} className="hover:bg-slate-800/40">
+                  <td className="p-3 font-semibold text-white">APN: {holding.apn} ({holding.county}, {holding.state})</td>
+                  <td className="p-3">{new Date(holding.acquisitionDate).toISOString().split('T')[0]}</td>
+                  <td className="p-3">${holding.purchasePrice.toLocaleString()}</td>
+                  <td className="p-3 text-slate-200">${holding.totalCostBasis.toLocaleString()}</td>
+                  <td className="p-3 text-emerald-400 font-bold">${holding.estimatedCurrentValue.toLocaleString()}</td>
+                  <td className="p-3 text-emerald-400 font-bold">+${holding.unrealizedProfit.toLocaleString()}</td>
+                  <td className="p-3">
+                    <Badge variant="info">{holding.status}</Badge>
+                  </td>
+                </tr>
+              ))}
+              
+              {/* Keep mock data as fallback if DB is empty for demo purposes */}
+              {holdings.length === 0 && isLoading && (
+                 <tr className="hover:bg-slate-800/40 opacity-50">
+                   <td className="p-3 font-semibold text-white">Loading database...</td>
+                   <td colSpan={6}></td>
+                 </tr>
+              )}
             </tbody>
           </table>
         </div>

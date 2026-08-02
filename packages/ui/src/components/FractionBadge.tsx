@@ -21,7 +21,7 @@ export const FractionBadge: React.FC<FractionBadgeProps> = ({ fraction, label, c
       )}
     >
       <span className="font-bold text-white">
-        {fraction.numerator}/{fraction.denominator}
+        {fraction.numerator.toString()}/{fraction.denominator.toString()}
       </span>
       <span className="text-[10px] text-emerald-400">({percentage}%)</span>
       {label && <span className="text-[10px] text-slate-400 uppercase tracking-wider">{label}</span>}

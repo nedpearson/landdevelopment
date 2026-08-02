@@ -21,6 +21,9 @@
         "name": "next"
       }
     ],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "target": "ES2020"
   },
   "include": [
