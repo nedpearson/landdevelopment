@@ -63,7 +63,7 @@ export function UniversalDrilldown() {
       <div className={`fixed inset-y-0 right-0 z-[101] w-full max-w-4xl bg-slate-950 shadow-2xl border-l border-slate-800 transition-transform duration-300 transform ${isOpen ? "translate-x-0" : "translate-x-full"} flex flex-col`}>
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50 gap-4">
           <div className="flex items-center gap-3">
             {hasHistory && (
               <button onClick={pop} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
@@ -86,7 +86,51 @@ export function UniversalDrilldown() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            {currentEntity.type === "PROPERTY" && propertyData && (
+              <div className="flex items-center gap-4 border-r border-slate-800 pr-4">
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Deal Score</div>
+                  <div className="text-lg font-black text-emerald-400">{propertyData.dealScore || 50}/100</div>
+                </div>
+                
+                <button 
+                  className="flex items-center px-3 py-1.5 rounded-md gap-2 text-indigo-400 border border-indigo-900/30 hover:bg-indigo-950 transition-colors"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/documents', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          apn: propertyData.apn,
+                          acreage: propertyData.acreage,
+                          county: propertyData.county,
+                          state: propertyData.state,
+                          price: propertyData.askingPrice,
+                          sellerName: 'Land Owner'
+                        })
+                      });
+                      if (!response.ok) throw new Error('Generation failed');
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `contract_${propertyData.apn || 'draft'}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                    } catch (err) {
+                      console.error(err);
+                      alert('Failed to generate contract');
+                    }
+                  }}
+                >
+                  <FileText className="w-4 h-4" />
+                  Draft Contract
+                </button>
+              </div>
+            )}
             <div className="text-xs text-slate-500 font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800 hidden sm:block">
               ID: {currentEntity.id.slice(0, 8)}...
             </div>

@@ -1,55 +1,92 @@
 "use server";
 
-import OpenAI from "openai";
+import OpenAI from 'openai';
 import { prisma } from "@land-intelligence/database";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'dummy_key', 
 });
 
-export async function askPortfolioAssistant(query: string) {
+export async function askPortfolioAssistant(question: string) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return "OpenAI API Key is missing. Please set OPENAI_API_KEY in your .env.local file to use the AI Assistant.";
+    if (process.env.OPENAI_API_KEY === 'dummy_key' || !process.env.OPENAI_API_KEY) {
+      return "⚠️ **OpenAI API Key Not Found**\n\nI am currently running in offline mode. Please add `OPENAI_API_KEY` to your environment variables to enable the live Portfolio Assistant.";
     }
 
-    // Fetch some basic portfolio stats to inject as context
-    const properties = await prisma.property.findMany({
-      select: {
-        id: true,
-        lifecycleStage: true,
-        acreage: true,
-        county: true,
-        state: true,
-        askingPrice: true
-      }
-    });
+    const properties = await prisma.property.findMany();
+    const holdings = await prisma.portfolioHolding.findMany({ include: { property: true }});
+    const buyers = await prisma.buyer.findMany();
+    const sellers = await prisma.seller.findMany();
 
-    const activeProperties = properties.filter(p => p.lifecycleStage !== "ARCHIVED");
-    const totalAcreage = activeProperties.reduce((sum, p) => sum + p.acreage, 0);
+    const systemPrompt = `You are the AI Chief Operations Officer for Land Intelligence OS.
+Your job is to answer questions about the portfolio and perform tasks when requested.
+Current Portfolio Context:
+- Properties: ${properties.length}
+- Portfolio Holdings: ${holdings.length}
+- Buyers: ${buyers.length}
+- Sellers: ${sellers.length}
 
-    const contextMessage = `
-    System Context: You are the 'Land Intelligence OS' AI Portfolio Assistant. You help real estate developers and landmen understand their portfolio.
-    Current Portfolio Stats:
-    - Active Properties: ${activeProperties.length}
-    - Total Acreage: ${totalAcreage.toFixed(2)} acres
-    
-    Answer the user's question concisely and professionally.
-    `;
+Keep your answers concise, professional, and directly address the user's question.`;
 
-    const completion = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: contextMessage },
-        { role: "user", content: query }
+        { role: "system", content: systemPrompt },
+        { role: "user", content: question }
       ],
-      temperature: 0.7,
-      max_tokens: 300,
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "draft_offer",
+            description: "Drafts a new purchase offer for a property.",
+            parameters: {
+              type: "object",
+              properties: {
+                propertyId: { type: "string", description: "The ID of the property." },
+                amount: { type: "number", description: "The offer amount in dollars." },
+              },
+              required: ["propertyId", "amount"],
+            }
+          }
+        }
+      ],
+      temperature: 0.3,
     });
 
-    return completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response at this time.";
-  } catch (error) {
+    const message = response.choices[0].message;
+
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      for (const toolCall of message.tool_calls) {
+        if (toolCall.type === 'function' && toolCall.function?.name === 'draft_offer') {
+          const args = JSON.parse(toolCall.function.arguments);
+          
+          // Must find a seller for the property
+          const propertySeller = await prisma.propertySeller.findFirst({
+            where: { propertyId: args.propertyId }
+          });
+          
+          if (!propertySeller) {
+             return `Error: Could not draft offer because Property ${args.propertyId} has no associated Seller.`;
+          }
+
+          await prisma.offer.create({
+            data: {
+              propertyId: args.propertyId,
+              sellerId: propertySeller.sellerId,
+              status: 'DRAFT', 
+              scenarios: { cash: { price: args.amount, notes: 'Drafted by AI Assistant' } }
+            }
+          });
+          return `I have successfully drafted an offer for Property ID ${args.propertyId} in the amount of $${args.amount.toLocaleString()}. The offer is safely stored in DRAFT status awaiting your review.`;
+        }
+      }
+    }
+
+    return message.content || "I'm sorry, I couldn't process that request.";
+
+  } catch (error: any) {
     console.error("AI Assistant Error:", error);
-    return "An error occurred while connecting to the AI service. Please try again.";
+    return `An error occurred while consulting the AI Assistant: ${error.message}`;
   }
 }

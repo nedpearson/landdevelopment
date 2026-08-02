@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
-import { Users, Mail, Phone, Calendar, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, Mail, Phone, Calendar, Send, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react';
 import { getSellers } from '@/actions/crmActions';
+import { logCommunication } from '@/actions/communicationActions';
 
 export default function SellersPage() {
   const [sellers, setSellers] = useState<any[]>([]);
@@ -15,6 +16,18 @@ export default function SellersPage() {
       setIsLoading(false);
     });
   }, []);
+
+  const handleMessage = async (sellerId: string) => {
+    const text = window.prompt('Enter your message to the seller:');
+    if (!text) return;
+    
+    await logCommunication(sellerId, 'SMS', text);
+    alert('Message sent successfully!');
+    
+    // Refresh
+    const data = await getSellers();
+    setSellers(data);
+  };
 
   return (
     <div className="space-y-6">
@@ -53,18 +66,19 @@ export default function SellersPage() {
                 <th className="p-3">Asking Price</th>
                 <th className="p-3">Last Contact</th>
                 <th className="p-3">Status</th>
+                <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
               {sellers.length === 0 && !isLoading && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-500">No sellers found in the database.</td>
+                  <td colSpan={8} className="p-8 text-center text-slate-500">No sellers found in the database.</td>
                 </tr>
               )}
               {sellers.map((seller) => {
                 const primaryProperty = seller.properties?.[0]?.property;
                 return (
-                  <tr key={seller.id} className="hover:bg-slate-800/40">
+                  <tr key={seller.id} className="hover:bg-slate-800/40 group">
                     <td className="p-3 font-semibold text-white">{seller.name}</td>
                     <td className="p-3 text-emerald-400">
                       {primaryProperty ? `APN: ${primaryProperty.apn} (${primaryProperty.acreage} AC)` : 'None'}
@@ -80,6 +94,12 @@ export default function SellersPage() {
                     <td className="p-3">
                       <Badge variant="warning">AWAITING ACTION</Badge>
                     </td>
+                    <td className="p-3 text-right">
+                      <Button variant="outline" size="sm" onClick={() => handleMessage(seller.id)} className="gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <MessageSquare className="w-3 h-3" />
+                        Quick SMS
+                      </Button>
+                    </td>
                   </tr>
                 );
               })}
@@ -87,7 +107,7 @@ export default function SellersPage() {
               {sellers.length === 0 && isLoading && (
                  <tr className="hover:bg-slate-800/40 opacity-50">
                    <td className="p-3 font-semibold text-white">Loading database...</td>
-                   <td colSpan={6}></td>
+                   <td colSpan={7}></td>
                  </tr>
               )}
             </tbody>

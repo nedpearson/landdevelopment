@@ -13,6 +13,7 @@
     "@land-intelligence/domain": "workspace:*",
     "@land-intelligence/integrations": "workspace:*",
     "@land-intelligence/ui": "workspace:*",
+    "@react-pdf/renderer": "^4.5.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.380.0",
     "mapbox-gl": "^3.27.0",
