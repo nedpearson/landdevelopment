@@ -18,7 +18,7 @@ const CoPilotContext = createContext<CoPilotContextType | undefined>(undefined);
 export function CoPilotProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(true); // Always visible by default
   const [messages, setMessages] = useState<Array<{ role: "system" | "user" | "ai"; content: string }>>([
-    { role: "ai", content: "Good morning. I am monitoring your workspace. Let me know if you need any property or financial analysis." }
+    { role: "ai", content: "Welcome to Land Intelligence. I can help you analyze properties, draft offers, run due diligence, and more. Add your first property to get started, or ask me anything about land investing." }
   ]);
   const pathname = usePathname();
   const { activeWorkspace } = useWorkspace();
@@ -29,14 +29,7 @@ export function CoPilotProvider({ children }: { children: React.ReactNode }) {
 
   const triggerContextualAdvice = () => {
     // Simulated contextual advice based on route
-    let advice = "";
-    if (pathname === "/") {
-      advice = "I noticed you skipped Utility Verification on the Texas property. Would you like me to flag it for the civil engineer?";
-    } else if (pathname === "/discover") {
-      advice = "You are viewing raw market data. I recommend filtering by 'Commercial Zoning' if you are looking for high-yield flips.";
-    } else {
-      advice = "I am monitoring this page. What would you like to know?";
-    }
+    let advice = "I am monitoring this page. What would you like to know?";
     
     addMessage("ai", advice);
   };

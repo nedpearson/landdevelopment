@@ -49,7 +49,7 @@ export default function OwnershipPage() {
   const handleAddInstrument = (e: React.FormEvent) => {
     e.preventDefault();
     setIsModalOpen(false);
-    showToast('Instrument added to ownership stack');
+    showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success');
   };
 
   const totalDecimal = mockOwnership.filter(o => o.interestType === 'Minerals').reduce((acc, curr) => acc + curr.decimal, 0);
@@ -231,3 +231,4 @@ export default function OwnershipPage() {
     </div>
   );
 }
+

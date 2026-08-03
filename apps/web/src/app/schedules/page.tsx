@@ -51,9 +51,8 @@ export default function SchedulesPage() {
       responsible: formData.get("responsible") as string,
       isCritical: formData.get("isCritical") === "true",
     };
-    setTasks([...tasks, newTask]);
     setIsModalOpen(false);
-    showToast("Task added to schedule");
+    showToast("Schedules persistence coming soon");
   };
 
   const getStatusBadge = (status: string) => {
@@ -112,7 +111,7 @@ export default function SchedulesPage() {
               {tasks.map((task) => (
                 <tr key={task.id} className="hover:bg-slate-700/30 transition h-16">
                   <td className="p-3 text-center">
-                    {task.isCritical && <AlertTriangle size={14} className="text-red-500 mx-auto" title="Critical Path" />}
+                    {task.isCritical && <AlertTriangle size={14} className="text-red-500 mx-auto" />}
                   </td>
                   <td className="p-3">
                     <div className={`font-medium ${task.isCritical ? 'text-red-400' : 'text-white'}`}>{task.name}</div>

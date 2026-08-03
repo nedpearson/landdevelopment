@@ -60,9 +60,8 @@ export default function FeasibilityPage() {
       profit: Number(formData.get("estRevenue")) - Number(formData.get("totalDevCost")) - Number(formData.get("landCost")),
       score: Math.floor(Math.random() * 40) + 60, // random score for mock
     };
-    setStudies([newStudy, ...studies]);
     setIsModalOpen(false);
-    showToast("Feasibility study created");
+    showToast("Feasibility studies persistence coming soon");
   };
 
   return (

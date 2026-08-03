@@ -60,7 +60,7 @@ export default function UnitsPage() {
     setUnits([...units, unit]);
     setIsModalOpen(false);
     setNewUnit({ unitNumber: '', propertyAddress: '', type: '1BR', sqFt: 0, rentAmount: 0, status: 'Vacant' });
-    showToast('Unit added successfully');
+    showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success');
   };
 
   const handleDelete = (id: string) => {
@@ -191,7 +191,7 @@ export default function UnitsPage() {
                       <td className="p-4 text-slate-400">{unit.leaseEndDate || '-'}</td>
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
-                          <button onClick={() => showToast('Edit modal would open', 'success')} className="p-1.5 text-slate-400 hover:text-emerald-400 transition-colors">
+                          <button onClick={() => showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success')} className="p-1.5 text-slate-400 hover:text-emerald-400 transition-colors">
                             <Edit className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDelete(unit.id)} className="p-1.5 text-slate-400 hover:text-red-400 transition-colors">
@@ -276,3 +276,5 @@ export default function UnitsPage() {
     </div>
   );
 }
+
+

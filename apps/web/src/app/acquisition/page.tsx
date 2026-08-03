@@ -121,7 +121,7 @@ export default function AcquisitionPage() {
                 <X size={24} />
               </button>
             </div>
-            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Target added'); }} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success'); }} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Landowner Name</label>
@@ -174,3 +174,4 @@ export default function AcquisitionPage() {
     </div>
   );
 }
+

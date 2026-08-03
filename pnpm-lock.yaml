@@ -107,9 +107,6 @@ importers:
       mapbox-gl:
         specifier: ^3.27.0
         version: 3.27.0
-      next:
-        specifier: ^14.2.35
-        version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       openai:
         specifier: ^7.3.0
         version: 7.3.0(ws@8.21.1)(zod@3.25.76)
@@ -130,10 +127,10 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
       '@types/node':
-        specifier: ^20.14.0
+        specifier: ^20.19.43
         version: 20.19.43
       '@types/react':
-        specifier: ^18.3.3
+        specifier: ^18.3.31
         version: 18.3.31
       '@types/react-dom':
         specifier: ^18.3.0
@@ -141,6 +138,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.19
         version: 10.5.4(postcss@8.5.25)
+      next:
+        specifier: ^14.2.35
+        version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       postcss:
         specifier: ^8.5.18
         version: 8.5.25

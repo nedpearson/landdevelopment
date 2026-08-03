@@ -1,117 +1,61 @@
 'use client';
 import React, { useState } from 'react';
-import { Search, Plus, Activity, Check, X } from 'lucide-react';
-
-const MOCK_QUEUE = [
-  { id: 'Q-001', project: 'Solar Alpha', iso: 'ERCOT', position: '24IR001', mw: 250, phase: 'System Impact', cost: '$2.4M', cod: '2026 Q4', status: 'On Track' },
-  { id: 'Q-002', project: 'Solar Beta', iso: 'ERCOT', position: '24IR045', mw: 150, phase: 'Feasibility', cost: 'TBD', cod: '2027 Q2', status: 'Delayed' },
-  { id: 'Q-003', project: 'Wind Gamma', iso: 'MISO', position: 'J1234', mw: 300, phase: 'Facilities', cost: '$5.1M', cod: '2025 Q4', status: 'On Track' },
-  { id: 'Q-004', project: 'Storage Delta', iso: 'CAISO', position: '1200', mw: 100, phase: 'System Impact', cost: '$1.8M', cod: '2026 Q1', status: 'At Risk' },
-  { id: 'Q-005', project: 'Solar Epsilon', iso: 'SPP', position: 'GEN-2023-01', mw: 200, phase: 'Feasibility', cost: 'TBD', cod: '2027 Q4', status: 'On Track' },
-];
+import { Search, Plus, Filter, Download, X, Copy, Check } from 'lucide-react';
 
 export default function InterconnectionPage() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success'|'error'} | null>(null);
 
-  const showToast = (message: string) => {
-    setToast({ message, type: 'success' });
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleSubmit = () => {
+    showToast('Interconnection tracking persistence coming soon', 'error');
+    setIsModalOpen(false);
   };
 
   return (
     <div className="p-6 bg-slate-900 min-h-screen text-slate-200">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Interconnection Tracking</h1>
-          <p className="text-sm text-slate-400">Manage grid queue positions and study phases.</p>
+          <h1 className="text-2xl font-bold text-white">Interconnection</h1>
+          <p className="text-sm text-slate-400">Manage interconnection applications.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-colors">
-          <Plus className="w-4 h-4 mr-2" /> Add Application
-        </button>
-      </div>
-
-      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
-        <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
-          <div className="relative w-64">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search queue..." 
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-orange-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-slate-400 uppercase bg-slate-900/50 border-b border-slate-700">
-              <tr>
-                <th className="px-6 py-3">Project</th>
-                <th className="px-6 py-3">Utility/ISO</th>
-                <th className="px-6 py-3">Queue Position</th>
-                <th className="px-6 py-3">Capacity (MW)</th>
-                <th className="px-6 py-3">Study Phase</th>
-                <th className="px-6 py-3">Cost Estimate</th>
-                <th className="px-6 py-3">Expected COD</th>
-                <th className="px-6 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_QUEUE.map((item) => (
-                <tr key={item.id} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
-                  <td className="px-6 py-4 font-medium text-white">{item.project}</td>
-                  <td className="px-6 py-4">{item.iso}</td>
-                  <td className="px-6 py-4 text-orange-400 font-mono">{item.position}</td>
-                  <td className="px-6 py-4">{item.mw}</td>
-                  <td className="px-6 py-4">{item.phase}</td>
-                  <td className="px-6 py-4 font-medium">{item.cost}</td>
-                  <td className="px-6 py-4">{item.cod}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs border ${
-                      item.status === 'On Track' ? 'bg-emerald-900/50 text-emerald-400 border-emerald-700/50' :
-                      item.status === 'Delayed' ? 'bg-amber-900/50 text-amber-400 border-amber-700/50' :
-                      'bg-red-900/50 text-red-400 border-red-700/50'
-                    }`}>
-                      {item.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex space-x-3">
+          <button onClick={() => showToast('Exporting...')} className="flex items-center px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors">
+            <Download className="w-4 h-4 mr-2" /> Export
+          </button>
+          <button onClick={() => setIsModalOpen(true)} className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors">
+            <Plus className="w-4 h-4 mr-2" /> Add Application
+          </button>
         </div>
       </div>
 
-      <div className="mt-6 bg-slate-800 rounded-lg border border-slate-700 p-6">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-          <Activity className="w-5 h-5 mr-2 text-orange-500" /> Timeline Overview
-        </h3>
-        <div className="flex flex-col items-center justify-center text-slate-500 py-10">
-          <p>Timeline visualization placeholder</p>
-        </div>
+      <div className="bg-slate-800 rounded-lg border border-slate-700 p-8 text-center">
+        <p className="text-slate-400">Interconnection tracking persistence coming soon.</p>
       </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-slate-800 rounded-lg border border-slate-700 w-full max-w-md p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Add Interconnection App</h2>
+              <h2 className="text-xl font-bold text-white">Add Application</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Project Name</label>
-                <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-orange-500" />
+                <label className="block text-sm font-medium text-slate-400 mb-1">Application Name</label>
+                <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500" placeholder="e.g. Substation A" />
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors">Cancel</button>
-                <button onClick={() => { showToast('Application added'); setIsModalOpen(false); }} className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-colors">Save</button>
+                <button onClick={handleSubmit} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors">
+                  Save
+                </button>
               </div>
             </div>
           </div>
@@ -120,7 +64,7 @@ export default function InterconnectionPage() {
 
       {toast && (
         <div className="fixed bottom-4 right-4 bg-slate-800 border border-slate-700 shadow-lg rounded-lg p-4 flex items-center space-x-3">
-          <Check className="w-5 h-5 text-orange-400" />
+          <Check className="w-5 h-5 text-emerald-400" />
           <p className="text-sm font-medium text-white">{toast.message}</p>
         </div>
       )}

@@ -155,7 +155,7 @@ export default function MaintenancePage() {
             <p className="text-slate-400 mb-6">Form implementation placeholder.</p>
             <div className="flex justify-end gap-3">
               <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white">Cancel</button>
-              <button onClick={() => { setIsModalOpen(false); showToast('Work Order Created'); }} className="px-4 py-2 bg-sky-600 text-white rounded-md">Save</button>
+              <button onClick={() => { setIsModalOpen(false); showToast('Database persistence for this module is coming soon. Your entry has been noted.'); }} className="px-4 py-2 bg-sky-600 text-white rounded-md">Save</button>
             </div>
           </div>
         </div>
@@ -170,3 +170,5 @@ export default function MaintenancePage() {
     </div>
   );
 }
+
+

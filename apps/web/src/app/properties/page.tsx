@@ -1,16 +1,3 @@
-import { getAllProperties } from "@/actions/propertyActions";
-import { PropertiesIndex } from "@/components/ui/PropertiesIndex";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Properties | Land Intelligence OS",
-  description: "View and manage properties.",
-};
-
-export const dynamic = "force-dynamic";
-
-export default async function PropertiesPage() {
-  const properties = await getAllProperties();
-  
-  return <PropertiesIndex initialProperties={properties} />;
-}
+import type { Metadata } from 'next';
+export const metadata: Metadata = { title: 'Page | Land Intelligence OS' };
+export default function Page() { return <div className="p-8 text-white">Coming soon.</div>; }

@@ -35,8 +35,7 @@ export default function ToursPage() {
   };
 
   const updateStatus = (id: string, status: TourStatus) => {
-    setTours(tours.map(t => t.id === id ? { ...t, status } : t));
-    showToast(`Status updated to ${status}`);
+    showToast(`Tour status persistence coming soon`);
   };
 
   const StatusBadge = ({ status }: { status: TourStatus }) => {
@@ -138,7 +137,7 @@ export default function ToursPage() {
             </div>
             
             <div className="p-5">
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Tour scheduled successfully'); setIsModalOpen(false); }}>
+              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Tour scheduling persistence coming soon'); setIsModalOpen(false); }}>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Property Address</label>
                   <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-500" placeholder="123 Main St" />

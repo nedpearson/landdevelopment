@@ -142,7 +142,7 @@ export default function TenantsPage() {
             <p className="text-slate-400 mb-6">Form implementation placeholder.</p>
             <div className="flex justify-end gap-3">
               <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white">Cancel</button>
-              <button onClick={() => { setIsAddModalOpen(false); showToast('Tenant added'); }} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Save</button>
+              <button onClick={() => { setIsAddModalOpen(false); showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success'); }} className="px-4 py-2 bg-indigo-600 text-white rounded-md">Save</button>
             </div>
           </div>
         </div>
@@ -221,3 +221,5 @@ export default function TenantsPage() {
     </div>
   );
 }
+
+

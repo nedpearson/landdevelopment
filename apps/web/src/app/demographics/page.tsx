@@ -158,7 +158,7 @@ export default function DemographicsPage() {
             </div>
             
             <div className="p-5">
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Request sent to GIS team'); setIsModalOpen(false); }}>
+              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Demographics persistence coming soon'); setIsModalOpen(false); }}>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Target Address / Location</label>
                   <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fuchsia-500" placeholder="e.g. 123 Main St" />

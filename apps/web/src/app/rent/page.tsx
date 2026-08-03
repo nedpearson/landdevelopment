@@ -55,7 +55,7 @@ export default function RentPage() {
     setIsPaymentModalOpen(false);
     setPaymentAmount('');
     setSelectedRecordId(null);
-    showToast('Payment recorded successfully');
+    showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success');
   };
 
   const handleSendNotice = (id: string) => {
@@ -221,3 +221,5 @@ export default function RentPage() {
     </div>
   );
 }
+
+

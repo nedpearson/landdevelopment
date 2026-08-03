@@ -174,7 +174,7 @@ export default function PipelinePage() {
         </div>
       )}
 
-      <style jsx global>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }

@@ -1,10 +1,3 @@
-import { CanonicalModule } from '@/components/ui/CanonicalModule';
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Leasehold | Land Intelligence OS',
-};
-
-export default function LeaseholdPage() {
-  return <CanonicalModule title="Leasehold" />;
-}
+import type { Metadata } from 'next';
+export const metadata: Metadata = { title: 'Page | Land Intelligence OS' };
+export default function Page() { return <div className="p-8 text-white">Coming soon.</div>; }

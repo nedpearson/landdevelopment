@@ -1,7 +1,6 @@
 'use server';
 
 import { prisma } from '@land-intelligence/database';
-import { revalidatePath } from 'next/cache';
 
 export async function logCommunication(sellerId: string, type: 'EMAIL' | 'SMS' | 'CALL', content: string) {
   try {
@@ -18,7 +17,6 @@ export async function logCommunication(sellerId: string, type: 'EMAIL' | 'SMS' |
       }
     });
 
-    revalidatePath('/sellers');
     return { success: true, message: `Successfully sent ${type} to seller.` };
   } catch (error) {
     console.error('Error logging communication:', error);

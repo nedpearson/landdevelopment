@@ -162,7 +162,7 @@ export default function TrafficPage() {
             </div>
             
             <div className="p-5">
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Study added successfully'); setIsModalOpen(false); }}>
+              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Traffic study persistence coming soon'); setIsModalOpen(false); }}>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Address</label>
                   <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-500" placeholder="123 Main St" />

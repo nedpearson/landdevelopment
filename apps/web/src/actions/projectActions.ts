@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from '@land-intelligence/database';
-import { revalidatePath } from 'next/cache';
 
 export async function getLandProjects() {
   return await prisma.landProject.findMany({
@@ -35,6 +34,5 @@ export async function createLandProject(data: {
     },
   });
 
-  revalidatePath('/projects');
   return project;
 }

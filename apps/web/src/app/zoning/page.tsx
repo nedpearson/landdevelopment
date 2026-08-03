@@ -1,35 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { Plus, Search, Map, CheckCircle, X, AlertTriangle } from "lucide-react";
-
-type ZoningRecord = {
-  id: string;
-  address: string;
-  zoningCode: string;
-  description: string;
-  maxFAR: number;
-  maxHeight: string;
-  minLotSize: string;
-  setbacks: string;
-  overlay: string;
-  varianceStatus: "None Needed" | "Required" | "Approved" | "Denied";
-};
-
-const initialRecords: ZoningRecord[] = [
-  { id: "1", address: "123 Oak St", zoningCode: "R-3", description: "High-Density Residential", maxFAR: 2.5, maxHeight: "45 ft", minLotSize: "5,000 sqft", setbacks: "F:20' S:10' R:15'", overlay: "Transit Oriented", varianceStatus: "None Needed" },
-  { id: "2", address: "456 Pine Ave", zoningCode: "C-2", description: "General Commercial", maxFAR: 3.0, maxHeight: "65 ft", minLotSize: "10,000 sqft", setbacks: "F:10' S:0' R:10'", overlay: "Historic District", varianceStatus: "Required" },
-  { id: "3", address: "789 River Rd", zoningCode: "MU-1", description: "Mixed-Use Low", maxFAR: 1.5, maxHeight: "35 ft", minLotSize: "7,500 sqft", setbacks: "F:15' S:5' R:15'", overlay: "Floodplain", varianceStatus: "Approved" },
-  { id: "4", address: "321 Industrial Pkwy", zoningCode: "I-1", description: "Light Industrial", maxFAR: 1.0, maxHeight: "50 ft", minLotSize: "20,000 sqft", setbacks: "F:30' S:20' R:30'", overlay: "None", varianceStatus: "None Needed" },
-  { id: "5", address: "555 Cedar Ln", zoningCode: "R-1", description: "Single-Family", maxFAR: 0.5, maxHeight: "30 ft", minLotSize: "10,000 sqft", setbacks: "F:25' S:10' R:20'", overlay: "Tree Conservation", varianceStatus: "Required" },
-];
+import { getDeveloperSites, updatePropertyZoning } from "@/actions/developerActions";
 
 export default function ZoningPage() {
-  const [records, setRecords] = useState<ZoningRecord[]>(initialRecords);
+  const [records, setRecords] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [complianceCheck, setComplianceCheck] = useState<ZoningRecord | null>(null);
+  const [complianceCheck, setComplianceCheck] = useState<any | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [selectedPropId, setSelectedPropId] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    loadRecords();
+  }, []);
+
+  const loadRecords = async () => {
+    const sites = await getDeveloperSites();
+    setRecords(sites);
+  };
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
@@ -37,16 +28,15 @@ export default function ZoningPage() {
   };
 
   const filteredRecords = records.filter(r =>
-    r.address.toLowerCase().includes(search.toLowerCase()) ||
-    r.zoningCode.toLowerCase().includes(search.toLowerCase())
+    r.address?.toLowerCase().includes(search.toLowerCase()) ||
+    r.apn?.toLowerCase().includes(search.toLowerCase()) ||
+    r.zoningAssessment?.zoningCode?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const newRecord: ZoningRecord = {
-      id: Math.random().toString(36).substring(7),
-      address: formData.get("address") as string,
+    const zoningData = {
       zoningCode: formData.get("zoningCode") as string,
       description: formData.get("description") as string,
       maxFAR: Number(formData.get("maxFAR")),
@@ -54,11 +44,25 @@ export default function ZoningPage() {
       minLotSize: formData.get("minLotSize") as string,
       setbacks: formData.get("setbacks") as string,
       overlay: formData.get("overlay") as string,
-      varianceStatus: formData.get("varianceStatus") as any,
+      varianceStatus: formData.get("varianceStatus") as string,
     };
-    setRecords([newRecord, ...records]);
-    setIsModalOpen(false);
-    showToast("Zoning record added");
+    
+    startTransition(() => {
+      (async () => {
+        if (!selectedPropId) {
+          showToast("Please select a property", "error");
+          return;
+        }
+        const res = await updatePropertyZoning(selectedPropId, zoningData);
+        if (res.success) {
+          showToast("Zoning record updated");
+          setIsModalOpen(false);
+          loadRecords();
+        } else {
+          showToast("Failed to update zoning", "error");
+        }
+      })();
+    });
   };
 
   const getVarianceColor = (status: string) => {
@@ -83,7 +87,7 @@ export default function ZoningPage() {
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition"
         >
           <Plus size={20} />
-          <span>Add Zoning Record</span>
+          <span>Add / Update Zoning</span>
         </button>
       </div>
 
@@ -105,7 +109,7 @@ export default function ZoningPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-900 border-b border-slate-700 text-slate-300 text-sm">
-                <th className="p-4 font-semibold">Address</th>
+                <th className="p-4 font-semibold">Address / APN</th>
                 <th className="p-4 font-semibold">Zoning Code</th>
                 <th className="p-4 font-semibold">Max FAR / Height</th>
                 <th className="p-4 font-semibold">Setbacks / Min Lot</th>
@@ -114,32 +118,34 @@ export default function ZoningPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50">
-              {filteredRecords.map((record) => (
+              {filteredRecords.map((record) => {
+                const z = record.zoningAssessment || {};
+                return (
                 <tr key={record.id} className="hover:bg-slate-700/30 transition">
                   <td className="p-4">
                     <div className="font-medium text-white flex items-center gap-2">
-                      <Map size={16} className="text-indigo-400" /> {record.address}
+                      <Map size={16} className="text-indigo-400" /> {record.address || record.apn}
                     </div>
                   </td>
                   <td className="p-4">
                     <span className="inline-block px-2 py-1 bg-slate-700 text-indigo-300 rounded font-mono text-sm border border-slate-600">
-                      {record.zoningCode}
+                      {z.zoningCode || 'N/A'}
                     </span>
-                    <div className="text-xs text-slate-400 mt-1">{record.description}</div>
+                    <div className="text-xs text-slate-400 mt-1">{z.description}</div>
                   </td>
                   <td className="p-4">
-                    <div className="text-sm">FAR: {record.maxFAR}</div>
-                    <div className="text-xs text-slate-400">Height: {record.maxHeight}</div>
+                    <div className="text-sm">FAR: {z.maxFAR}</div>
+                    <div className="text-xs text-slate-400">Height: {z.maxHeight}</div>
                   </td>
                   <td className="p-4">
-                    <div className="text-sm">{record.setbacks}</div>
-                    <div className="text-xs text-slate-400">Lot: {record.minLotSize}</div>
+                    <div className="text-sm">{z.setbacks}</div>
+                    <div className="text-xs text-slate-400">Lot: {z.minLotSize}</div>
                   </td>
                   <td className="p-4">
-                    <div className="text-sm truncate max-w-[150px]" title={record.overlay}>{record.overlay}</div>
+                    <div className="text-sm truncate max-w-[150px]" title={z.overlay}>{z.overlay}</div>
                     <div className="mt-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${getVarianceColor(record.varianceStatus)}`}>
-                        {record.varianceStatus}
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${getVarianceColor(z.varianceStatus)}`}>
+                        {z.varianceStatus || 'None'}
                       </span>
                     </div>
                   </td>
@@ -152,7 +158,7 @@ export default function ZoningPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )})}
               {filteredRecords.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-slate-400">No zoning records found matching "{search}"</td>
@@ -167,7 +173,7 @@ export default function ZoningPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl">
             <div className="flex justify-between items-center p-6 border-b border-slate-700">
-              <h2 className="text-xl font-bold text-white">Add Zoning Record</h2>
+              <h2 className="text-xl font-bold text-white">Add/Update Zoning Record</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition">
                 <X size={24} />
               </button>
@@ -175,8 +181,13 @@ export default function ZoningPage() {
             <form onSubmit={handleCreate} className="p-6">
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Address</label>
-                  <input required name="address" type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-indigo-500 focus:outline-none" />
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Property</label>
+                  <select required value={selectedPropId} onChange={e => setSelectedPropId(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-indigo-500 focus:outline-none">
+                    <option value="" disabled>Select Property</option>
+                    {records.map(r => (
+                      <option key={r.id} value={r.id}>{r.address || r.apn}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Zoning Code</label>
@@ -218,7 +229,7 @@ export default function ZoningPage() {
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white transition">Cancel</button>
-                <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition">Save Record</button>
+                <button type="submit" disabled={isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition disabled:opacity-50">Save Record</button>
               </div>
             </form>
           </div>
@@ -235,38 +246,22 @@ export default function ZoningPage() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <p className="text-sm text-slate-400 mb-4">Evaluating {complianceCheck.address} against {complianceCheck.zoningCode} ({complianceCheck.description}) standards.</p>
+              <p className="text-sm text-slate-400 mb-4">Evaluating {complianceCheck.address || complianceCheck.apn} against {complianceCheck.zoningAssessment?.zoningCode} ({complianceCheck.zoningAssessment?.description}) standards.</p>
               
               <div className="flex items-start gap-3">
                 <CheckCircle className="text-emerald-500 mt-0.5 shrink-0" size={20} />
                 <div>
                   <div className="text-sm font-medium text-white">FAR Compliance</div>
-                  <div className="text-xs text-slate-400">Proposed FAR is within max {complianceCheck.maxFAR}</div>
+                  <div className="text-xs text-slate-400">Proposed FAR is within max {complianceCheck.zoningAssessment?.maxFAR}</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle className="text-emerald-500 mt-0.5 shrink-0" size={20} />
                 <div>
                   <div className="text-sm font-medium text-white">Height Restrictions</div>
-                  <div className="text-xs text-slate-400">Building height meets {complianceCheck.maxHeight} limit</div>
+                  <div className="text-xs text-slate-400">Building height meets {complianceCheck.zoningAssessment?.maxHeight} limit</div>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="text-amber-500 mt-0.5 shrink-0" size={20} />
-                <div>
-                  <div className="text-sm font-medium text-white">Setback Encroachment</div>
-                  <div className="text-xs text-slate-400">Warning: Porch design encroaches on Front setback ({complianceCheck.setbacks})</div>
-                </div>
-              </div>
-              {complianceCheck.overlay !== "None" && (
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="text-indigo-400 mt-0.5 shrink-0" size={20} />
-                  <div>
-                    <div className="text-sm font-medium text-white">Overlay Review Required</div>
-                    <div className="text-xs text-slate-400">Subject to {complianceCheck.overlay} design guidelines</div>
-                  </div>
-                </div>
-              )}
               
               <div className="mt-6 pt-4 border-t border-slate-700 flex justify-end">
                 <button onClick={() => {

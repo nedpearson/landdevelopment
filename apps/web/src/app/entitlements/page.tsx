@@ -51,9 +51,8 @@ export default function EntitlementsPage() {
       jurisdiction: formData.get("jurisdiction") as string,
       progress: formData.get("status") === "Approved" ? 100 : formData.get("status") === "Not Started" ? 0 : 30,
     };
-    setEntitlements([newRecord, ...entitlements]);
     setIsModalOpen(false);
-    showToast("Entitlement record added");
+    showToast("Entitlements persistence coming soon");
   };
 
   const getStatusBadge = (status: string) => {
