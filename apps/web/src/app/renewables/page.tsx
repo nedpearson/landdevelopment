@@ -4,7 +4,10 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
 import { Sun, Plus, Zap, MapPin, Layers } from 'lucide-react';
 
+import { useDrilldown } from '@/components/providers/DrilldownProvider';
+
 export default function RenewablesPage() {
+  const { push } = useDrilldown();
   const projects = [
     {
       id: 'ren-1',
@@ -62,7 +65,11 @@ export default function RenewablesPage() {
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
               {projects.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-800/40">
+                <tr 
+                  key={p.id} 
+                  className="hover:bg-slate-800/40 cursor-pointer"
+                  onClick={() => push({ id: p.id, type: 'PROPERTY', label: p.projectName })}
+                >
                   <td className="p-3 font-bold text-amber-400">{p.projectName}</td>
                   <td className="p-3 text-slate-200">{p.developer}</td>
                   <td className="p-3 font-semibold text-white">{p.projectType.replace('_', ' ')}</td>

@@ -3,10 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Map, User, FileText, X } from "lucide-react";
 import { useDrilldown, EntityType } from "../providers/DrilldownProvider";
-import { searchDatabase, SearchResult } from "@/app/actions/search";
+import { searchDatabase } from "@/app/actions/search";
+import type { SearchResult } from "@/app/actions/search";
+import { useWorkspace } from "../providers/WorkspaceProvider";
 
 export function UniversalSearch() {
   const { push } = useDrilldown();
+  const { activeWorkspace } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -86,7 +89,7 @@ export function UniversalSearch() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search parcels, owners, leases, APNs..."
+            placeholder={`Search as ${activeWorkspace.label} (parcels, owners, leases, APNs)...`}
             className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-slate-500"
           />
           <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white">

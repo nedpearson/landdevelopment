@@ -46,7 +46,12 @@ export function DiligenceGaps({ entityType, entityId, propertyData }: Props) {
                   {gap.severity}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">{gap.description}</p>
+              <p className="text-xs text-slate-400 leading-relaxed mb-2">{gap.description}</p>
+              {gap.actionUrl && (
+                <a href={gap.actionUrl} className="inline-block mt-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-1 rounded">
+                  Take Action &rarr;
+                </a>
+              )}
             </div>
           </div>
         ))}

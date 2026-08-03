@@ -1,6 +1,7 @@
 "use server";
 
 import OpenAI from 'openai';
+import { prisma } from '@land-intelligence/database';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -19,20 +20,46 @@ export async function generateExecutiveSummary(entityId: string, entityType: str
     throw new Error("OpenAI API key is missing. Please add OPENAI_API_KEY to your environment variables.");
   }
 
-  // In a real application, you would fetch the full database object here:
-  // const data = await db.property.findUnique({ where: { id: entityId } })
+  let entityData = null;
   
-  // For the sake of this prompt, we provide generic context about the entity type.
+  try {
+    if (entityType === "PROPERTY") {
+      entityData = await prisma.property.findUnique({
+        where: { id: entityId },
+        include: {
+          tracts: true,
+          sellers: true,
+          offers: true,
+        }
+      });
+    } else if (entityType === "OWNER" || entityType === "SELLER") {
+      entityData = await prisma.seller.findUnique({
+        where: { id: entityId },
+        include: { properties: true }
+      });
+    }
+  } catch (err) {
+    console.error("Database fetch failed:", err);
+  }
+
+  if (!entityData) {
+    throw new Error(`Could not locate ${entityType} record with ID: ${entityId}`);
+  }
+
   const prompt = `
     You are an expert land development AI analyst. 
-    Review the following ${entityType} (ID: ${entityId}). 
-    Generate a precise executive summary assessing its potential for development or investment.
+    Review the following real data for a ${entityType} (ID: ${entityId}). 
+    
+    DATA:
+    ${JSON.stringify(entityData, null, 2)}
+    
+    Generate a precise executive summary assessing its potential for development, investment, or acquisition.
     
     Return the response strictly as a JSON object matching this schema:
     {
-      "summary": "2-3 sentences of overarching analysis",
-      "positiveIndicators": ["point 1", "point 2"],
-      "concerns": ["risk 1", "risk 2"],
+      "summary": "2-3 sentences of overarching analysis based on the actual data provided.",
+      "positiveIndicators": ["point 1 based on data", "point 2 based on data"],
+      "concerns": ["risk 1 based on data", "risk 2 based on data"],
       "recommendedSteps": ["step 1", "step 2"],
       "confidence": 85
     }

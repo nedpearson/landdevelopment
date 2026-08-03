@@ -1,59 +1,90 @@
-'use server';
+"use server";
 
+import OpenAI from 'openai';
 import { prisma } from '@land-intelligence/database';
-import { revalidatePath } from 'next/cache';
 
-/**
- * Calculates a Deal Score (0-100) based on Property attributes.
- * This is a simplified proxy for a real underwriting algorithm.
- */
-export async function calculateDealScore(propertyId: string) {
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export type UnderwritingAnalysis = {
+  maxAllowableOffer: number;
+  estimatedResaleValue: number;
+  developmentCosts: number;
+  holdingCosts: number;
+  netProfit: number;
+  projectedROI: number;
+  recommendation: "STRONG BUY" | "BUY" | "HOLD" | "PASS";
+  reasoning: string;
+  riskFactors: string[];
+};
+
+export async function generateUnderwritingAnalysis(propertyId: string): Promise<UnderwritingAnalysis | null> {
   try {
     const property = await prisma.property.findUnique({
       where: { id: propertyId }
     });
 
-    if (!property) throw new Error("Property not found");
+    if (!property) return null;
 
-    let score = 50; // Base average score
+    // We send a stripped down version of the property to the AI for analysis
+    const propertyData = {
+      apn: property.apn,
+      county: property.county,
+      acreage: property.acreage,
+      askingPrice: property.askingPrice || (property.acreage * 10000), // fallback guess
+      estimatedMarketValue: property.estimatedMarketValue || (property.acreage * 20000),
+      zoningAssessment: property.zoningAssessment,
+      utilityAssessment: property.utilityAssessment,
+      dealScore: property.dealScore
+    };
 
-    // Acreage Factor: Larger parcels generally have better economies of scale
-    if (property.acreage > 100) score += 15;
-    else if (property.acreage > 20) score += 10;
-    else if (property.acreage < 1) score -= 10;
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are the Lead Acquisition Underwriter for an automated land investment fund.
+Your job is to analyze a property and calculate the exact financial viability and Max Allowable Offer (MAO).
 
-    // Price Factor: Cheaper price per acre is better (assuming $1000/acre as baseline)
-    if (property.askingPrice && property.askingPrice > 0) {
-      const ppa = property.askingPrice / property.acreage;
-      if (ppa < 500) score += 20;
-      else if (ppa < 1000) score += 10;
-      else if (ppa > 5000) score -= 15;
-    }
+RULES:
+- A typical land flip requires a 50% ROI.
+- A subdivision play requires a 100% ROI.
+- Development costs generally run $5,000 per acre for raw land, more if utilities are missing.
+- Holding costs are typically 5% of the purchase price per year, assume a 1-year hold.
 
-    // Constraints & Flags
-    const zoningStr = JSON.stringify(property.zoningAssessment || {});
-    const envStr = JSON.stringify(property.environmentalAssessment || {});
-    const utilStr = JSON.stringify(property.utilityAssessment || {});
-
-    if (zoningStr.includes("Commercial")) score += 10;
-    if (envStr.includes("Wetland")) score -= 25;
-    if (utilStr.includes("Sewer")) score += 15;
-
-    // Normalize 0-100
-    score = Math.max(0, Math.min(100, score));
-
-    // Persist score
-    await prisma.property.update({
-      where: { id: propertyId },
-      data: { dealScore: score } 
+Given the property data, calculate the numbers and provide a recommendation.
+Return ONLY valid JSON matching this schema exactly:
+{
+  "maxAllowableOffer": number,
+  "estimatedResaleValue": number,
+  "developmentCosts": number,
+  "holdingCosts": number,
+  "netProfit": number,
+  "projectedROI": number, // as a percentage, e.g., 55.5
+  "recommendation": "STRONG BUY" | "BUY" | "HOLD" | "PASS",
+  "reasoning": "2-3 sentence explanation of the math and strategy",
+  "riskFactors": ["Risk 1", "Risk 2"]
+}`
+        },
+        { role: "user", content: JSON.stringify(propertyData) }
+      ],
+      response_format: { type: "json_object" }
     });
 
-    revalidatePath('/properties');
-    revalidatePath(`/properties/${propertyId}`);
-
-    return { success: true, score };
+    if (!response.choices[0].message.content) return null;
+    
+    const analysis = JSON.parse(response.choices[0].message.content) as UnderwritingAnalysis;
+    
+    // Optionally update the DB with the new suggested offer price
+    await prisma.property.update({
+      where: { id: propertyId },
+      data: { suggestedOfferPrice: analysis.maxAllowableOffer }
+    });
+    
+    return analysis;
   } catch (error) {
-    console.error("Underwriting Error:", error);
-    return { success: false, error: "Failed to calculate deal score" };
+    console.error("Underwriting generation failed:", error);
+    return null;
   }
 }

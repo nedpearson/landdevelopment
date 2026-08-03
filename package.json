@@ -2,6 +2,7 @@
   "name": "land-intelligence-os",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/validate-routes.js",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

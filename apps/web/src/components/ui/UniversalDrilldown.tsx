@@ -11,7 +11,7 @@ import { PropertyHealthBadge } from "./PropertyHealthBadge";
 import { NextBestAction } from "./NextBestAction";
 import { PropertyTimeline } from "./PropertyTimeline";
 import { DecisionSimulator } from "./DecisionSimulator";
-import { useIndustryRole } from "../providers/IndustryRoleProvider";
+import { useWorkspace } from "../providers/WorkspaceProvider";
 import { InvestmentScorecard } from "./InvestmentScorecard";
 import { RentalScorecard } from "./RentalScorecard";
 import { DevelopmentScorecard } from "./DevelopmentScorecard";
@@ -20,6 +20,12 @@ import { DataRoom } from "./DataRoom";
 
 import type { Property } from "@land-intelligence/database";
 import { getPropertyById } from "@/actions/propertyActions";
+import { AutonomousUnderwriter } from "./AutonomousUnderwriter";
+import { AINegotiator } from "./AINegotiator";
+import { AutoDiligenceEngine } from "./AutoDiligenceEngine";
+import { TitleRiskEngine } from "./TitleRiskEngine";
+import { PredictiveMatchmaker } from "./PredictiveMatchmaker";
+import { FinancialProForma } from "./FinancialProForma";
 
 const ICONS: Record<EntityType, React.ReactNode> = {
   PROPERTY: <Map className="w-5 h-5 text-emerald-400" />,
@@ -31,9 +37,16 @@ const ICONS: Record<EntityType, React.ReactNode> = {
 
 export function UniversalDrilldown() {
   const { stack, push, pop, clear } = useDrilldown();
-  const { currentRole } = useIndustryRole();
+  const { activeWorkspace } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
   const [propertyData, setPropertyData] = useState<Property | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("");
+
+  useEffect(() => {
+    if (activeWorkspace.propertyTabs.length > 0 && !activeTab) {
+      setActiveTab(activeWorkspace.propertyTabs[0]);
+    }
+  }, [activeWorkspace, activeTab]);
 
   const currentEntity = stack.length > 0 ? stack[stack.length - 1] : null;
 
@@ -145,12 +158,34 @@ export function UniversalDrilldown() {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 animate-fade-in">
           
+          {/* Dynamic Workspace Tabs */}
+          {currentEntity.type === "PROPERTY" && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-4 border-b border-slate-800 scrollbar-hide">
+              {activeWorkspace.propertyTabs.map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    activeTab === tab 
+                      ? "bg-indigo-600 text-white" 
+                      : "bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* AI Scorecard Engine */}
           {currentEntity.type === "PROPERTY" && propertyData && (
-            <div className="mb-6">
-              {currentRole === "LAND_INVESTOR" || currentRole === "COMMERCIAL_BROKER" || currentRole === "LANDMAN" ? (
+            <div className="mb-6 space-y-6">
+              {/* Phase 27: Autonomous Underwriter (AVM) */}
+              <AutonomousUnderwriter propertyData={propertyData} />
+
+              {activeWorkspace.type === "LAND_INVESTOR" || activeWorkspace.type === "COMMERCIAL_BROKER" || activeWorkspace.type === "LANDMAN_ENERGY" ? (
                 <InvestmentScorecard propertyData={propertyData} />
-              ) : currentRole === "PROPERTY_MANAGER" || currentRole === "RESIDENTIAL_REALTOR" ? (
+              ) : activeWorkspace.type === "PROPERTY_MANAGER" || activeWorkspace.type === "RESIDENTIAL_REALTOR" ? (
                 <RentalScorecard propertyData={propertyData} />
               ) : (
                 <DevelopmentScorecard propertyData={propertyData} />
@@ -171,7 +206,7 @@ export function UniversalDrilldown() {
           {currentEntity.type === "PROPERTY" && (
             <>
               {/* Omni-Asset Decision Simulator - Only for Investors/Developers */}
-              {(currentRole === "LAND_INVESTOR" || currentRole === "DEVELOPER" || currentRole === "RENEWABLE_DEVELOPER") && (
+              {(activeWorkspace.type === "LAND_INVESTOR" || activeWorkspace.type === "DEVELOPER" || activeWorkspace.type === "RENEWABLE_ENERGY") && (
                 <DecisionSimulator propertyData={propertyData} />
               )}
               
@@ -184,11 +219,32 @@ export function UniversalDrilldown() {
                 </div>
               </div>
               
-              {/* Phase 13: Automated Campaign Engine */}
+              {/* Phase 25: The Autonomous Execution Layer */}
               <CampaignLaunchpad propertyData={propertyData} />
 
-              {/* Phase 14: Smart Data Room & AI Document Analyst */}
-              <DataRoom />
+              {/* Phase 28: Autonomous Geospatial Due Diligence */}
+              <AutoDiligenceEngine propertyId={propertyData.id} />
+
+              {/* Phase 30: AI Financial Forecasting & Scenario Modeler */}
+              <FinancialProForma initialPurchasePrice={propertyData.estimatedMarketValue || 1000000} />
+
+              {/* Phase 29: AI Title Attorney */}
+              <TitleRiskEngine apn={propertyData.apn} county={propertyData.county} state={propertyData.state} />
+
+              {/* Phase 28: Omni-Channel AI Negotiator */}
+              <AINegotiator propertyId={propertyData.id} sellerId={(propertyData as any).sellers?.[0]?.sellerId || "default-seller"} />
+
+              {/* Phase 29: Predictive Buyer Matchmaker */}
+              <PredictiveMatchmaker propertyDetails={{
+                apn: propertyData.apn,
+                county: propertyData.county,
+                state: propertyData.state,
+                acreage: propertyData.acreage,
+                type: propertyData.propertyClass
+              }} />
+
+              {/* Phase 14 & 27: Smart Data Room & AI Document Analyst */}
+              <DataRoom propertyId={propertyData?.id} />
             </>
           )}
 
@@ -198,24 +254,51 @@ export function UniversalDrilldown() {
               <p className="text-slate-400 text-sm">Owner details, related LLCs, and transaction history will render here.</p>
             </div>
           )}
+
+          {currentEntity.type === "LEASE" && (
+            <div className="bg-slate-900 border border-amber-900/30 rounded-xl p-6 shadow-[0_0_15px_rgba(245,158,11,0.05)]">
+              <h3 className="text-amber-400 font-semibold mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Lease Details
+              </h3>
+              <p className="text-slate-400 text-sm mb-4">Terms, expirations, and royalty fractions will render here.</p>
+            </div>
+          )}
+
+          {currentEntity.type === "TRACT" && (
+            <div className="bg-slate-900 border border-purple-900/30 rounded-xl p-6 shadow-[0_0_15px_rgba(168,85,247,0.05)]">
+              <h3 className="text-purple-400 font-semibold mb-4 flex items-center gap-2">
+                <Layers className="w-5 h-5" />
+                Tract Abstract
+              </h3>
+              <p className="text-slate-400 text-sm mb-4">Title chains, curative items, and GIS data will render here.</p>
+            </div>
+          )}
           
           {/* Example of linking further down the rabbit hole */}
           <div className="border-t border-slate-800 pt-6 mt-6">
-            <h4 className="text-sm font-semibold text-slate-300 mb-3">Related Entities (Click to Drilldown)</h4>
+            <h4 className="text-sm font-semibold text-slate-300 mb-3">Relationship Graph (Click to Traverse)</h4>
             <div className="flex flex-wrap gap-3">
               <button 
-                onClick={() => push({ id: "owner-789", type: "OWNER", label: "John Doe LLC" })}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-sm transition-colors flex items-center gap-2"
+                onClick={() => push({ id: "owner-789", type: "OWNER", label: "Smith Holdings LLC" })}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-sm"
               >
                 <User className="w-4 h-4 text-sky-400" />
-                John Doe LLC
+                Smith Holdings LLC
               </button>
               <button 
                 onClick={() => push({ id: "lease-456", type: "LEASE", label: "Oil & Gas Lease 2023" })}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-sm transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-sm"
               >
                 <FileText className="w-4 h-4 text-amber-400" />
                 Oil & Gas Lease 2023
+              </button>
+              <button 
+                onClick={() => push({ id: "tract-123", type: "TRACT", label: "Tract 12-A" })}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-sm transition-colors flex items-center gap-2 shadow-sm"
+              >
+                <Layers className="w-4 h-4 text-purple-400" />
+                Tract 12-A
               </button>
             </div>
           </div>

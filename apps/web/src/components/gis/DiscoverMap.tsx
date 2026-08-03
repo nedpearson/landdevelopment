@@ -6,7 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { getMapProperties } from '@/actions/mapActions';
 import { MapPin, Target, DollarSign, Zap } from 'lucide-react';
 import { useDrilldown } from '../providers/DrilldownProvider';
-import { useIndustryRole } from '../providers/IndustryRoleProvider';
+import { useWorkspace } from '../providers/WorkspaceProvider';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -14,7 +14,7 @@ export function DiscoverMap() {
   const [properties, setProperties] = useState<any[]>([]);
   const [popupInfo, setPopupInfo] = useState<any>(null);
   const { push } = useDrilldown();
-  const { currentRole } = useIndustryRole();
+  const { activeWorkspace } = useWorkspace();
 
   useEffect(() => {
     getMapProperties().then(setProperties);
@@ -44,8 +44,8 @@ export function DiscoverMap() {
           // Color logic based on role and score
           const isHighValue = property.dealScore > 80;
           let pinColor = "text-indigo-400";
-          if (currentRole === "LAND_INVESTOR" && isHighValue) pinColor = "text-emerald-400";
-          if (currentRole === "DEVELOPER" && property.acreage > 50) pinColor = "text-orange-400";
+          if (activeWorkspace.type === "LAND_INVESTOR" && isHighValue) pinColor = "text-emerald-400";
+          if (activeWorkspace.type === "DEVELOPER" && property.acreage > 50) pinColor = "text-orange-400";
 
           return (
             <Marker
@@ -84,13 +84,13 @@ export function DiscoverMap() {
                   <span className="text-slate-500">Deal Score</span>
                   <span className="font-bold text-emerald-400">{popupInfo.dealScore || 50}/100</span>
                 </div>
-                {currentRole === "LAND_INVESTOR" && (
+                {activeWorkspace.type === "LAND_INVESTOR" && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500">AI Signal</span>
                     <span className="font-bold text-amber-400 flex items-center gap-1"><Target className="w-3 h-3"/> Flip Target</span>
                   </div>
                 )}
-                {currentRole === "DEVELOPER" && (
+                {activeWorkspace.type === "DEVELOPER" && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-500">AI Signal</span>
                     <span className="font-bold text-orange-400 flex items-center gap-1"><Zap className="w-3 h-3"/> High Density</span>

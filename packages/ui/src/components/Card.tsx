@@ -37,3 +37,9 @@ export const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement
     {children}
   </p>
 );
+
+export const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ children, className, ...props }) => (
+  <div className={cn('p-6 pt-0', className)} {...props}>
+    {children}
+  </div>
+);

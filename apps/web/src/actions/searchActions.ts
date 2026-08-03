@@ -1,10 +1,15 @@
 'use server';
 
 import { prisma } from '@land-intelligence/database';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export type SearchResult = {
   id: string;
-  type: 'PROPERTY' | 'OWNER' | 'OFFER' | 'SELLER' | 'AI_FILTER';
+  type: 'PROPERTY' | 'OWNER' | 'OFFER' | 'SELLER' | 'AI_FILTER' | 'TRACT' | 'LEASE' | 'DOCUMENT';
   title: string;
   subtitle: string;
 };
@@ -15,54 +20,68 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
   try {
     const q = query.toLowerCase();
     
-    // Phase 12: Natural Language Universal Search (Simulated NLP)
+    // Phase 26: True NLP Universal Search
     let isNaturalLanguage = false;
-    const propertyWhere: any = { OR: [] };
+    let propertyWhere: any = {};
     
-    // Simple NLP heuristic rules
-    if (q.includes("large") || q.includes("big")) {
+    // Determine if the query is conversational/NLP
+    if (q.split(' ').length > 2 || q.includes('over') || q.includes('under') || q.includes('in') || q.includes('acres')) {
       isNaturalLanguage = true;
-      propertyWhere.acreage = { gte: 10 }; // 10+ acres
-    }
-    if (q.includes("texas") || q.includes(" tx")) {
-      isNaturalLanguage = true;
-      propertyWhere.state = "TX";
-    }
-    if (q.includes("florida") || q.includes(" fl")) {
-      isNaturalLanguage = true;
-      propertyWhere.state = "FL";
-    }
-    if (q.includes("multifamily") || q.includes("multi-family")) {
-      isNaturalLanguage = true;
-      propertyWhere.propertyClass = "RESIDENTIAL_MULTI_FAMILY";
-    }
-    if (q.includes("commercial")) {
-      isNaturalLanguage = true;
-      propertyWhere.propertyClass = { in: ["COMMERCIAL_RETAIL", "COMMERCIAL_OFFICE"] };
-    }
-    if (q.includes("vacant") || q.includes("land")) {
-      isNaturalLanguage = true;
-      propertyWhere.propertyClass = "VACANT_LAND";
-    }
-
-    // If no NLP keywords triggered, use standard literal search
-    if (!isNaturalLanguage) {
-      propertyWhere.OR = [
-        { apn: { contains: query, mode: 'insensitive' } },
-        { address: { contains: query, mode: 'insensitive' } },
-        { ownerName: { contains: query, mode: 'insensitive' } }
-      ];
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "You convert user natural language search queries into a Prisma where object for a Property model. Fields available: acreage (float), askingPrice (float), state (string code, e.g. 'TX'), county (string), propertyClass (enum: RESIDENTIAL_SINGLE_FAMILY, RESIDENTIAL_MULTI_FAMILY, COMMERCIAL_RETAIL, COMMERCIAL_OFFICE, VACANT_LAND, INDUSTRIAL)." },
+          { role: "user", content: query }
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "build_prisma_where",
+              description: "Builds a prisma where clause",
+              parameters: {
+                type: "object",
+                properties: {
+                  acreage: {
+                    type: "object",
+                    properties: { gte: { type: "number" }, lte: { type: "number" } }
+                  },
+                  askingPrice: {
+                    type: "object",
+                    properties: { gte: { type: "number" }, lte: { type: "number" } }
+                  },
+                  state: { type: "string" },
+                  county: { type: "string" },
+                  propertyClass: { type: "string" }
+                }
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "build_prisma_where" } }
+      });
+      
+      const toolCall = response.choices[0].message.tool_calls?.[0];
+      if (toolCall && toolCall.type === "function") {
+        propertyWhere = JSON.parse(toolCall.function.arguments);
+      }
     } else {
-      // If NLP triggered, remove the empty OR array so Prisma doesn't fail
-      delete propertyWhere.OR;
+      propertyWhere = {
+        OR: [
+          { apn: { contains: query, mode: 'insensitive' } },
+          { address: { contains: query, mode: 'insensitive' } },
+          { ownerName: { contains: query, mode: 'insensitive' } }
+        ]
+      };
     }
 
     // Run all queries in parallel for maximum performance
-    const [properties, sellers] = await Promise.all([
+    const [properties, sellers, tracts, leases] = await Promise.all([
       // 1. Search Properties (NLP or Literal)
       prisma.property.findMany({
         where: propertyWhere,
-        take: 10
+        take: 5
       }),
       
       // 2. Search Sellers (Name, Email, Phone) - Literal only
@@ -74,7 +93,31 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
             { phone: { contains: query, mode: 'insensitive' } }
           ]
         },
-        take: 5
+        take: 3
+      }),
+
+      // 3. Search Tracts
+      isNaturalLanguage ? Promise.resolve([]) : prisma.landTract.findMany({
+        where: {
+          OR: [
+            { tractNumber: { contains: query, mode: 'insensitive' } },
+            { surfaceOwnerName: { contains: query, mode: 'insensitive' } },
+            { mineralOwnerName: { contains: query, mode: 'insensitive' } }
+          ]
+        },
+        take: 3
+      }),
+
+      // 4. Search Leases
+      isNaturalLanguage ? Promise.resolve([]) : prisma.leaseRecord.findMany({
+        where: {
+          OR: [
+            { leaseNumber: { contains: query, mode: 'insensitive' } },
+            { lessorName: { contains: query, mode: 'insensitive' } },
+            { lesseeName: { contains: query, mode: 'insensitive' } }
+          ]
+        },
+        take: 3
       })
     ]);
 
@@ -105,6 +148,24 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
         type: 'SELLER',
         title: s.name,
         subtitle: s.email || s.phone || 'No Contact Info'
+      });
+    });
+
+    tracts.forEach(t => {
+      results.push({
+        id: t.id,
+        type: 'TRACT',
+        title: `Tract ${t.tractNumber}`,
+        subtitle: `${t.surfaceOwnerName} - ${t.grossAcres} Acres`
+      });
+    });
+
+    leases.forEach(l => {
+      results.push({
+        id: l.id,
+        type: 'LEASE',
+        title: `Lease ${l.leaseNumber}`,
+        subtitle: `${l.lessorName} to ${l.lesseeName}`
       });
     });
 

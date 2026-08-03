@@ -36,6 +36,15 @@ export function evaluateDiligenceGaps(entityType: string, entityId: string, prop
       });
     }
 
+    if (!propertyData.apn || propertyData.apn === "") {
+      gaps.push({
+        id: "gap-apn",
+        field: "APN Missing",
+        description: "The Assessor's Parcel Number is missing, which will block title searches.",
+        severity: "HIGH"
+      });
+    }
+
     // Residential specific gaps
     if (zoningAssessment?.intendedUse === "RESIDENTIAL" || propertyData.lifecycleStage === "PROSPECT") {
       if (!zoningAssessment?.schoolDistrictRating) {
@@ -43,10 +52,10 @@ export function evaluateDiligenceGaps(entityType: string, entityId: string, prop
           id: "gap-school",
           field: "School District Rating",
           description: "Missing GreatSchools rating which heavily impacts SFR/BTR valuation.",
-          severity: "HIGH"
+          severity: "MEDIUM"
         });
       }
-      if (!zoningAssessment?.hoaRestrictionsKnown) {
+      if (zoningAssessment?.hoaRestrictionsKnown === false || zoningAssessment?.hoaRestrictionsKnown === undefined) {
         gaps.push({
           id: "gap-hoa",
           field: "HOA Rental Restrictions",
@@ -83,6 +92,12 @@ export function evaluateDiligenceGaps(entityType: string, entityId: string, prop
       field: "Expiration Date",
       description: "Lease expiration date is missing, risking holdover issues.",
       severity: "HIGH"
+    });
+    gaps.push({
+      id: "gap-lease-payment",
+      field: "Payment Terms",
+      description: "Missing verification of monthly payment amounts or royalty fractions.",
+      severity: "MEDIUM"
     });
   }
 

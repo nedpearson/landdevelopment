@@ -4,7 +4,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Command } from "cmdk";
 import { useGlobalSearch } from "../providers/GlobalSearchProvider";
 import { useDrilldown } from "../providers/DrilldownProvider";
-import { globalSearch, SearchResult } from "@/actions/searchActions";
+import { globalSearch } from "@/actions/searchActions";
+import type { SearchResult } from "@/actions/searchActions";
 import { Search, Loader2, Map, User, Sparkles } from "lucide-react";
 
 export function CommandPalette() {
@@ -109,8 +110,10 @@ export function CommandPalette() {
                   <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] flex-shrink-0 group-aria-selected:bg-indigo-500/10 group-aria-selected:border-indigo-500/20 transition-colors">
                     {result.type === "AI_FILTER" && <Sparkles className="w-4 h-4 text-indigo-400" />}
                     {result.type === "PROPERTY" && <Map className="w-4 h-4 text-emerald-400" />}
-                    {result.type === "SELLER" && <User className="w-4 h-4 text-sky-400" />}
-                    {result.type === "OWNER" && <User className="w-4 h-4 text-sky-400" />}
+                    {(result.type === "SELLER" || result.type === "OWNER") && <User className="w-4 h-4 text-sky-400" />}
+                    {result.type === "TRACT" && <Map className="w-4 h-4 text-purple-400" />}
+                    {result.type === "LEASE" && <Map className="w-4 h-4 text-amber-400" />}
+                    {result.type === "DOCUMENT" && <Map className="w-4 h-4 text-rose-400" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-slate-200 truncate group-aria-selected:text-white transition-colors">{result.title}</div>

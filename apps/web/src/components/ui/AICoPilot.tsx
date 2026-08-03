@@ -1,18 +1,64 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
-import { Sparkles, X, ChevronRight, MessageSquare, BrainCircuit } from "lucide-react";
+import React, { useRef, useEffect, useState } from "react";
+import { Sparkles, X, ChevronRight, MessageSquare, BrainCircuit, Loader2 } from "lucide-react";
 import { useCoPilot } from "../providers/CoPilotProvider";
+import { processCopilotMessage } from "@/actions/copilotActions";
+import { usePathname } from "next/navigation";
+import { useDrilldown } from "../providers/DrilldownProvider";
+import { useWorkspace } from "../providers/WorkspaceProvider";
 
 export function AICoPilot() {
-  const { isOpen, setIsOpen, messages } = useCoPilot();
+  const { isOpen, setIsOpen, messages, addMessage } = useCoPilot();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const pathname = usePathname();
+  const { activeWorkspace } = useWorkspace();
+  const { push, stack, clear } = useDrilldown();
+  const currentView = stack.length > 0 ? stack[stack.length - 1] : null;
 
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, loading]);
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const userMessage = input.trim();
+    setInput("");
+    addMessage("user", userMessage);
+    setLoading(true);
+
+    try {
+      const propertyId = currentView?.type === 'PROPERTY' ? currentView.id : undefined;
+      
+      const response = await processCopilotMessage(userMessage, {
+        currentPath: pathname,
+        propertyId,
+        workspaceContext: activeWorkspace.aiSystemContext
+      });
+
+      addMessage("ai", response.message);
+
+      // Handle UI Actions if the AI decided to execute a tool
+      if (response.uiAction) {
+        if (response.uiAction.type === 'NAVIGATE') {
+          clear();
+        } else if (response.uiAction.type === 'CREATE_CAMPAIGN') {
+          push({ id: response.uiAction.payload.propertyId, type: 'PROPERTY', label: 'Property CRM' });
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      addMessage("ai", "I encountered an error connecting to the intelligence engine.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen) {
     return (
@@ -55,25 +101,39 @@ export function AICoPilot() {
                   <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">Co-Pilot</span>
                 </div>
               )}
-              <p className="leading-relaxed">{msg.content}</p>
+              <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
             </div>
           </div>
         ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-slate-800 text-slate-200 rounded-2xl rounded-bl-none border border-slate-700/50 px-4 py-3">
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
       <div className="p-4 border-t border-slate-800 bg-slate-950 shrink-0">
-        <div className="relative">
+        <form onSubmit={handleSubmit} className="relative">
           <input 
             type="text" 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={loading}
             placeholder="Ask anything..." 
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-4 pr-10 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-4 pr-10 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
           />
-          <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
+          <button 
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors disabled:opacity-50"
+          >
             <MessageSquare className="w-4 h-4" />
           </button>
-        </div>
+        </form>
         <p className="text-[10px] text-slate-500 text-center mt-3">
           I am context-aware. I see the page you are on.
         </p>

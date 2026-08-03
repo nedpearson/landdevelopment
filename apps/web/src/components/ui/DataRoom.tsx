@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { FolderKanban, FileText, UploadCloud, FileSearch, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { analyzeDocument, AIAnalysisResult, DocumentType } from "@/actions/documentAnalysisActions";
+import { FolderKanban, FileText, UploadCloud, FileSearch, Loader2, AlertTriangle, CheckCircle2, FileSignature } from "lucide-react";
+import { analyzeDocument } from "@/actions/documentAnalysisActions";
+import { generatePSA } from "@/actions/documentActions";
+import type { AIAnalysisResult, DocumentType } from "@/actions/documentAnalysisActions";
+import type { GeneratedDocument } from "@/actions/documentActions";
 
 const MOCK_FILES = [
   { id: "1", name: "Title_Commitment_Prelim.pdf", type: "TITLE_COMMITMENT" as DocumentType, date: "Oct 12, 2026" },
@@ -10,15 +13,32 @@ const MOCK_FILES = [
   { id: "3", name: "Warranty_Deed_Recorded.pdf", type: "WARRANTY_DEED" as DocumentType, date: "Jan 05, 2024" }
 ];
 
-export function DataRoom() {
+interface Props {
+  propertyId?: string;
+}
+
+export function DataRoom({ propertyId }: Props) {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, AIAnalysisResult>>({});
+  
+  const [generatingPSA, setGeneratingPSA] = useState(false);
+  const [generatedPSA, setGeneratedPSA] = useState<GeneratedDocument | null>(null);
 
   const handleAnalyze = async (fileId: string, type: DocumentType, fileName: string) => {
     setAnalyzingId(fileId);
     const result = await analyzeDocument(type, fileName);
     setResults(prev => ({ ...prev, [fileId]: result }));
     setAnalyzingId(null);
+  };
+
+  const handleGeneratePSA = async () => {
+    if (!propertyId) return;
+    setGeneratingPSA(true);
+    const doc = await generatePSA(propertyId);
+    if (doc) {
+      setGeneratedPSA(doc);
+    }
+    setGeneratingPSA(false);
   };
 
   return (
@@ -28,9 +48,21 @@ export function DataRoom() {
           <FolderKanban className="w-4 h-4 text-emerald-400" />
           Smart Data Room
         </h3>
-        <button className="flex items-center gap-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors border border-slate-700">
-          <UploadCloud className="w-4 h-4" /> Upload
-        </button>
+        <div className="flex items-center gap-3">
+          {propertyId && (
+            <button 
+              onClick={handleGeneratePSA}
+              disabled={generatingPSA}
+              className="flex items-center gap-2 text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg transition-colors border border-emerald-500/20 disabled:opacity-50"
+            >
+              {generatingPSA ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSignature className="w-4 h-4" />}
+              {generatingPSA ? "Generating..." : "Auto-Generate PSA"}
+            </button>
+          )}
+          <button className="flex items-center gap-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors border border-slate-700">
+            <UploadCloud className="w-4 h-4" /> Upload
+          </button>
+        </div>
       </div>
 
       <div className="divide-y divide-slate-800">
@@ -103,6 +135,35 @@ export function DataRoom() {
           );
         })}
       </div>
+
+      {generatedPSA && (
+        <div className="p-6 border-t border-slate-800 bg-slate-950">
+          <div className="flex items-center gap-2 mb-4">
+            <FileSignature className="w-5 h-5 text-emerald-400" />
+            <h4 className="text-lg font-bold text-slate-200">{generatedPSA.title}</h4>
+            <span className="ml-auto text-xs font-semibold px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-md border border-emerald-500/30">
+              AI Generated
+            </span>
+          </div>
+          
+          <div className="mb-6 space-y-2">
+            <h5 className="text-xs font-bold text-slate-500 uppercase">Key Clauses Detected</h5>
+            {generatedPSA.clauses.map((clause, idx) => (
+              <div key={idx} className="text-sm text-slate-300 bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                {clause}
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <h5 className="text-xs font-bold text-slate-500 uppercase mb-2">Document Content</h5>
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg text-sm text-slate-300 whitespace-pre-wrap font-mono overflow-auto max-h-96">
+              {generatedPSA.content}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

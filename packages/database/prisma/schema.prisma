@@ -276,6 +276,7 @@ model Property {
   ownerFinanceNotes OwnerFinanceNote[]
   communicationLogs CommunicationLog[]
   tracts            TractParcel[]
+  campaignMessages  CampaignMessage[]
 
   @@index([apn, county, state])
   @@index([lifecycleStage])
@@ -928,4 +929,21 @@ model GlossaryTerm {
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@map("glossary_terms")
+}
+
+model CampaignMessage {
+  id         String   @id @default(uuid()) @db.Uuid
+  propertyId String   @map("property_id") @db.Uuid
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  channel    String   @default("Email") // Email, Direct Mail, SMS
+  role       String   // e.g., LAND_INVESTOR, DEVELOPER
+  copy       String   @db.Text
+  status     String   @default("DRAFT") // DRAFT, APPROVED, SENT
+
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([propertyId])
+  @@map("campaign_messages")
 }

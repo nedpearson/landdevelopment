@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useIndustryRole } from "./IndustryRoleProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { getProactiveInsights } from "@/actions/copilot";
 
 interface CoPilotContextType {
@@ -21,7 +21,7 @@ export function CoPilotProvider({ children }: { children: React.ReactNode }) {
     { role: "ai", content: "Good morning. I am monitoring your workspace. Let me know if you need any property or financial analysis." }
   ]);
   const pathname = usePathname();
-  const { currentRole } = useIndustryRole();
+  const { activeWorkspace } = useWorkspace();
 
   const addMessage = (role: "system" | "user" | "ai", content: string) => {
     setMessages((prev) => [...prev, { role, content }]);
@@ -44,13 +44,13 @@ export function CoPilotProvider({ children }: { children: React.ReactNode }) {
   // Trigger proactive insights when role changes
   useEffect(() => {
     let isMounted = true;
-    getProactiveInsights(currentRole).then((insight) => {
+    getProactiveInsights(activeWorkspace.type).then((insight) => {
       if (isMounted) {
         addMessage("ai", insight);
       }
     });
     return () => { isMounted = false; };
-  }, [currentRole]);
+  }, [activeWorkspace.type]);
 
   // Trigger advice when navigating to certain pages
   useEffect(() => {

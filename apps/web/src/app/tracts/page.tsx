@@ -6,8 +6,10 @@ import { MapPin, Plus, Scale, FileText, CheckCircle2, ShieldAlert, Layers } from
 import { TractMap } from "../../components/gis/TractMap";
 import Link from 'next/link';
 import { rationalToDecimal } from '@land-intelligence/domain';
+import { useDrilldown } from '@/components/providers/DrilldownProvider';
 
 export default function TractsPage() {
+  const { push } = useDrilldown();
   const [selectedTractId, setSelectedTractId] = useState('trc-104');
 
   const tracts = [
@@ -169,9 +171,18 @@ export default function TractsPage() {
               </div>
 
               <div className="pt-2 flex gap-2">
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  className="w-full" 
+                  icon={<Layers className="w-4 h-4" />}
+                  onClick={() => push({ id: activeTract.id, type: 'TRACT', label: activeTract.tractNumber })}
+                >
+                  Open Tract Drilldown
+                </Button>
                 <Link href="/runsheets" className="w-full">
-                  <Button variant="primary" size="sm" className="w-full" icon={<FileText className="w-4 h-4" />}>
-                    Open Title Runsheet
+                  <Button variant="outline" size="sm" className="w-full border-slate-700" icon={<FileText className="w-4 h-4" />}>
+                    View Runsheet
                   </Button>
                 </Link>
               </div>

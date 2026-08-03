@@ -2,10 +2,16 @@
 
 import { prisma } from "@land-intelligence/database";
 
+// Temporary auth mock until auth provider is fully wired
+const currentOrganizationId = "org_default";
+
 export async function getPropertyById(id: string) {
   try {
-    const property = await prisma.property.findUnique({
-      where: { id },
+    const property = await prisma.property.findFirst({
+      where: { 
+        id,
+        organizationId: currentOrganizationId
+      },
       include: {
         comps: true,
         sellers: {
@@ -19,8 +25,6 @@ export async function getPropertyById(id: string) {
     
     if (!property) return null;
     
-    // We need to parse JSON fields safely if they aren't typed properly, 
-    // but Prisma should return them as JS objects or arrays if using Json type.
     return property;
   } catch (error) {
     console.error("Error fetching property:", error);
@@ -31,6 +35,9 @@ export async function getPropertyById(id: string) {
 export async function getAllProperties() {
   try {
     const properties = await prisma.property.findMany({
+      where: {
+        organizationId: currentOrganizationId
+      },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
