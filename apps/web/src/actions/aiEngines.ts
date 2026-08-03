@@ -5,7 +5,7 @@ import type { Property } from "@land-intelligence/database";
 import { prisma } from '@land-intelligence/database';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || \'dummy-key\',
+  apiKey: process.env.OPENAI_API_KEY || "dummy-key",
 });
 
 // Phase 10: Industry-Specific AI Engines

@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { prisma } from '@land-intelligence/database';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || \'dummy-key\',
+  apiKey: process.env.OPENAI_API_KEY || "dummy-key",
 });
 
 export async function generateCampaignCopy(propertyId: string, role: string, channel: string = "Email") {
