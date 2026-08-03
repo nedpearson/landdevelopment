@@ -3,7 +3,7 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy_key',
+  apiKey: process.env.OPENAI_API_KEY || \'dummy-key\'|| 'dummy_key',
 });
 
 export interface FinancialScenarioParams {

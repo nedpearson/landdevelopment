@@ -3,7 +3,7 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || \'dummy-key\',
 });
 
 export type DocumentType = 'TITLE_COMMITMENT' | 'WARRANTY_DEED' | 'ENVIRONMENTAL_PHASE_1' | 'TAX_RECORD';
