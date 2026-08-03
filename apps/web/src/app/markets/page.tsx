@@ -1,127 +1,80 @@
 'use client';
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
-import { Compass, TrendingUp, MapPin, Layers, ArrowUpRight } from 'lucide-react';
-import Link from 'next/link';
+import React, { useState } from 'react';
+import { Globe, Plus, TrendingUp, TrendingDown, Activity } from 'lucide-react';
+
+const MOCK_MARKETS = [
+  { id: '1', name: 'Travis County, TX', price: '$45,000', dom: 45, active: 124, sold: 32, trend: 'up', trendPct: '5.2%' },
+  { id: '2', name: 'Williamson County, TX', price: '$38,000', dom: 52, active: 89, sold: 18, trend: 'up', trendPct: '2.1%' },
+  { id: '3', name: 'Hays County, TX', price: '$42,500', dom: 61, active: 56, sold: 12, trend: 'down', trendPct: '1.5%' },
+];
 
 export default function MarketsPage() {
+  const [toast, setToast] = useState<{message: string} | null>(null);
+
+  const showToast = (message: string) => {
+    setToast({ message });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Compass className="w-5 h-5 text-emerald-400" /> Target Markets & Basin Intelligence
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time market activity, parcel transaction volume, average price per acre, and demand scoring.
-          </p>
+    <div className="min-h-screen bg-slate-900 text-slate-200 p-6">
+      {toast && (
+        <div className="fixed bottom-4 right-4 p-4 rounded-md shadow-lg bg-lime-600 text-white z-50 animate-in fade-in">
+          {toast.message}
         </div>
-        <Badge variant="success">2 Active Target Basins</Badge>
+      )}
+
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center">
+            <Globe className="w-6 h-6 mr-3 text-lime-500" />
+            Market Intelligence
+          </h1>
+          <p className="text-slate-400">Track regional land metrics and trends</p>
+        </div>
+        <button onClick={() => showToast('Opening Add Market modal...')} className="bg-lime-600 hover:bg-lime-700 text-white px-4 py-2 rounded-md flex items-center transition-colors">
+          <Plus className="w-4 h-4 mr-2" /> Add Market
+        </button>
       </div>
 
-      {/* Markets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Market 1 */}
-        <Card className="border-emerald-900/40 bg-slate-900">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-white">Costilla County, CO</CardTitle>
-                <Badge variant="success" className="font-mono">HIGH DEMAND</Badge>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {MOCK_MARKETS.map(market => (
+          <div key={market.id} className="bg-slate-800 rounded-lg border border-slate-700 p-5 hover:border-lime-500/50 transition-colors cursor-pointer" onClick={() => showToast(`Viewing ${market.name} details`)}>
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="font-semibold text-white text-lg">{market.name}</h3>
+              <Activity className="w-5 h-5 text-slate-500" />
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-slate-400">Median Price / Acre</div>
+                <div className="text-2xl font-bold text-white flex items-center mt-1">
+                  {market.price}
+                  {market.trend === 'up' ? 
+                    <span className="text-emerald-400 text-sm ml-2 flex items-center"><TrendingUp className="w-4 h-4 mr-1" /> {market.trendPct}</span> : 
+                    <span className="text-red-400 text-sm ml-2 flex items-center"><TrendingDown className="w-4 h-4 mr-1" /> {market.trendPct}</span>
+                  }
+                </div>
               </div>
-              <CardDescription>San Luis Valley Region | Off-Grid & Recreational Land</CardDescription>
-            </div>
-            <Link href="/discover?county=Costilla&state=CO">
-              <Button variant="primary" size="sm" icon={<ArrowUpRight className="w-3.5 h-3.5" />}>
-                Explore Market
-              </Button>
-            </Link>
-          </CardHeader>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Active Parcels</span>
-              <p className="text-sm font-bold text-white mt-0.5">248 Parcels</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Avg $/Acre</span>
-              <p className="text-sm font-bold text-emerald-400 mt-0.5">$3,200 / AC</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Avg DOM</span>
-              <p className="text-sm font-bold text-amber-300 mt-0.5">42 Days</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Target Cash-on-Cash</span>
-              <p className="text-sm font-bold text-purple-400 mt-0.5">125.0%</p>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <EvidenceBox
-              source="Costilla County Clerk Assessor & MLS Feed"
-              retrievedAt={new Date().toISOString()}
-              confidenceScore={95}
-              verificationState="ATTORNEY_VERIFIED"
-            >
-              <p className="text-xs text-slate-300">
-                Provenanced Market Intelligence: Costilla County off-grid 5-acre lots are trading at an average of $16,000 resale with high buyer demand for seller financing terms ($250/mo).
-              </p>
-            </EvidenceBox>
-          </div>
-        </Card>
-
-        {/* Market 2 */}
-        <Card className="border-amber-900/40 bg-slate-900">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-white">Reeves County, TX (Permian Basin)</CardTitle>
-                <Badge variant="warning" className="font-mono">ENERGY & MINERALS</Badge>
+              
+              <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-700">
+                <div>
+                  <div className="text-xs text-slate-400">Avg DOM</div>
+                  <div className="font-medium text-white">{market.dom}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400">Active</div>
+                  <div className="font-medium text-white">{market.active}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400">Sold (90d)</div>
+                  <div className="font-medium text-white">{market.sold}</div>
+                </div>
               </div>
-              <CardDescription>Delaware Basin | Wolfcamp A & B Mineral Rights</CardDescription>
-            </div>
-            <Link href="/discover?county=Reeves&state=TX">
-              <Button variant="primary" size="sm" icon={<ArrowUpRight className="w-3.5 h-3.5" />}>
-                Explore Basin
-              </Button>
-            </Link>
-          </CardHeader>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Target NMA</span>
-              <p className="text-sm font-bold text-white mt-0.5">1,250 NMA</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Max Bonus/NMA</span>
-              <p className="text-sm font-bold text-amber-300 mt-0.5">$4,500 / NMA</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Lease Royalty</span>
-              <p className="text-sm font-bold text-emerald-400 mt-0.5">20.0% (1/5th)</p>
-            </div>
-            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[10px] uppercase font-semibold">Operator</span>
-              <p className="text-sm font-bold text-purple-300 mt-0.5">Pioneer / Oxy</p>
             </div>
           </div>
-
-          <div className="mt-4">
-            <EvidenceBox
-              source="Texas Railroad Commission (RRC) & Reeves County Registry"
-              retrievedAt={new Date().toISOString()}
-              confidenceScore={96}
-              verificationState="ATTORNEY_VERIFIED"
-            >
-              <p className="text-xs text-slate-300">
-                Provenanced Basin Intelligence: Reeves County Wolfcamp lateral horizontal completions averaging 1,200 BOEPD. High acquisition activity for unleased mineral tracts.
-              </p>
-            </EvidenceBox>
-          </div>
-        </Card>
+        ))}
       </div>
     </div>
   );

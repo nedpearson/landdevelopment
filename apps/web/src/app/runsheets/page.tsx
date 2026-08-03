@@ -1,186 +1,170 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
-import { FileText, Plus, Search, CheckCircle2, ShieldAlert, BookOpen, Layers } from 'lucide-react';
+import { FileDown, Plus, FileText, CheckCircle, X, Search, ChevronRight, AlertCircle } from 'lucide-react';
+
+interface Runsheet {
+  id: string;
+  name: string;
+  project: string;
+  tract: string;
+  updatedAt: string;
+}
+
+interface RunsheetEntry {
+  id: string;
+  entryNum: number;
+  instrument: string;
+  date: string;
+  volPage: string;
+  grantor: string;
+  grantee: string;
+  notes: string;
+  defect?: boolean;
+}
+
+const runsheetsList: Runsheet[] = [
+  { id: '1', name: 'Permian TR-1045 SO/MI', project: 'Permian Alpha', tract: 'TR-1045', updatedAt: '2024-02-15' },
+  { id: '2', name: 'Permian TR-1046 SO/MI', project: 'Permian Alpha', tract: 'TR-1046', updatedAt: '2024-02-14' },
+  { id: '3', name: 'Eagle Ford TR-2201 MI', project: 'Eagle Ford Extension', tract: 'TR-2201', updatedAt: '2024-02-10' },
+];
+
+const mockEntries: RunsheetEntry[] = [
+  { id: '1', entryNum: 1, instrument: 'Patent', date: '1910-04-12', volPage: '1/10', grantor: 'State of Texas', grantee: 'John Smith', notes: 'Patents all of Sec 12 to Smith' },
+  { id: '2', entryNum: 2, instrument: 'WD', date: '1945-11-20', volPage: '45/211', grantor: 'John Smith', grantee: 'H&P Land Co', notes: 'Conveys surface and 50% minerals' },
+  { id: '3', entryNum: 3, instrument: 'MD', date: '1945-12-05', volPage: '46/15', grantor: 'John Smith', grantee: 'Permian Trust', notes: 'Conveys remaining 50% minerals' },
+  { id: '4', entryNum: 4, instrument: 'OGL', date: '1970-02-15', volPage: '120/44', grantor: 'H&P Land Co', grantee: 'Texaco Inc', notes: 'Primary term 3 yrs, 1/8 royalty' },
+  { id: '5', entryNum: 5, instrument: 'Release', date: '2010-01-15', volPage: '1100/55', grantor: 'Chevron USA', grantee: 'H&P Land Co', notes: 'Releases lease at entry 4' },
+  { id: '6', entryNum: 6, instrument: 'OGL', date: '2023-05-01', volPage: '2040/12', grantor: 'H&P Land Co', grantee: 'ExxonMobil', notes: 'Primary term 3 yrs, 1/4 royalty', defect: true },
+];
 
 export default function RunsheetsPage() {
-  const [activeTab, setActiveTab] = useState<'INSTRUMENTS' | 'GAPS'>('INSTRUMENTS');
+  const [selectedRunsheet, setSelectedRunsheet] = useState<Runsheet>(runsheetsList[0]);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  const instruments = [
-    {
-      id: 'inst-1',
-      sequenceNumber: 1,
-      instrumentType: 'PATENT',
-      grantor: 'State of Texas',
-      grantee: 'John H. Reeves',
-      executionDate: '1892-04-10',
-      recordingDate: '1892-05-12',
-      book: 'Patents-1',
-      page: '142',
-      docNumber: 'DOC-1892-142',
-      legalDescription: 'NW1/4 Section 14, Block 55, PSL Survey (160 AC)',
-      titleStatus: 'CLEARED_TITLE',
-      notes: 'Patent from Sovereign State of Texas conveying full Fee Simple estate.',
-    },
-    {
-      id: 'inst-2',
-      sequenceNumber: 2,
-      instrumentType: 'MINERAL_DEED',
-      grantor: 'John H. Reeves',
-      grantee: 'Henry T. Miller',
-      executionDate: '1945-11-20',
-      recordingDate: '1945-11-28',
-      book: 'Deeds-84',
-      page: '302',
-      docNumber: 'DOC-1945-302',
-      legalDescription: 'Undivided 1/4 Mineral Interest in NW1/4 Section 14, Block 55',
-      titleStatus: 'CLEARED_TITLE',
-      notes: 'Severance of 1/4 Mineral Estate (40 NMA). Surface retained by Reeves.',
-    },
-    {
-      id: 'inst-3',
-      sequenceNumber: 3,
-      instrumentType: 'PROBATE_WILL',
-      grantor: 'Henry T. Miller (Deceased)',
-      grantee: 'Miller Family Trust',
-      executionDate: '1998-06-15',
-      recordingDate: '1999-01-10',
-      book: 'Probate-12',
-      page: '88',
-      docNumber: 'DOC-1999-088',
-      legalDescription: 'All real property & mineral interests in Reeves County, TX',
-      titleStatus: 'CURATIVE_REQUIRED',
-      notes: 'Foreign will probated in Oklahoma; Affidavit of Heirship needed in Texas registry.',
-    },
-  ];
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleExport = () => {
+    showToast('Runsheet PDF generated and downloading...');
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-900 text-white p-8 flex flex-col">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-amber-400" /> Title Runsheet Engine & Instrument Index
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+            <FileText className="text-orange-500" />
+            Title Runsheets
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Chronological title runsheet for Tract #T-104 (NW1/4 Sec 14, Block 55, PSL Survey, Reeves Co, TX).
-          </p>
+          <p className="text-slate-400">Generate and review title runsheets for projects.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>
-            Add Instrument Entry
-          </Button>
+        <div className="flex gap-3">
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            <FileDown size={20} />
+            Export PDF
+          </button>
+          <button 
+            onClick={() => showToast('New runsheet draft created')}
+            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            <Plus size={20} />
+            Generate Runsheet
+          </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-        <button
-          onClick={() => setActiveTab('INSTRUMENTS')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'INSTRUMENTS'
-              ? 'bg-amber-950/80 text-amber-300 border border-amber-800/80'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Chronological Instruments ({instruments.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('GAPS')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'GAPS'
-              ? 'bg-rose-950/80 text-rose-300 border border-rose-800/80'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Title Gaps & Curative Defects (1 Alert)
-        </button>
-      </div>
-
-      {/* Runsheet Content */}
-      {activeTab === 'INSTRUMENTS' ? (
-        <Card className="border-slate-800 bg-slate-900">
-          <CardHeader>
-            <CardTitle>Chronological Instrument Index</CardTitle>
-            <CardDescription>Sovereign Patent to Current Record Owner Chain</CardDescription>
-          </CardHeader>
-
-          <div className="relative border-l border-slate-700 ml-4 space-y-8 py-4">
-            {instruments.map((inst) => (
-              <div key={inst.id} className="relative pl-6">
-                <div className="absolute w-4 h-4 bg-slate-900 border-2 border-amber-500 rounded-full -left-[9px] top-1.5 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
-                <Card className="border-slate-800 bg-slate-950/50 hover:bg-slate-900 transition-colors">
-                  <CardHeader className="pb-3 border-b border-slate-800/60">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-amber-400 font-bold font-mono">#{inst.sequenceNumber}</span>
-                          <Badge variant={inst.instrumentType === 'PATENT' ? 'info' : 'warning'}>
-                            {inst.instrumentType.replace('_', ' ')}
-                          </Badge>
-                          <Badge variant={inst.titleStatus === 'CLEARED_TITLE' ? 'success' : 'danger'}>
-                            {inst.titleStatus.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-sm font-semibold text-white">
-                          {inst.grantor} <span className="text-slate-500 font-mono text-xs mx-1">→</span> {inst.grantee}
-                        </CardTitle>
-                      </div>
-                      <div className="text-right font-mono text-[10px]">
-                        <p className="text-slate-400">Execution: {inst.executionDate}</p>
-                        <p className="text-slate-500">Recorded: {inst.recordingDate}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <div className="p-4 space-y-3">
-                    <div className="flex justify-between items-center text-xs font-mono">
-                      <div>
-                        <span className="text-slate-500 uppercase text-[10px]">Recording Reference</span>
-                        <p className="text-slate-300">Vol {inst.book}, Pg {inst.page} <span className="text-slate-500">({inst.docNumber})</span></p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-slate-500 uppercase text-[10px]">Tract Linkage</span>
-                        <p className="text-amber-300/80 truncate max-w-[200px]">{inst.legalDescription}</p>
-                      </div>
-                    </div>
-                    {inst.notes && (
-                      <div className="bg-slate-900/50 rounded p-3 border border-slate-800/40 text-xs text-slate-400">
-                        <span className="text-slate-500 font-semibold mb-1 block">Instrument Notes & Clauses:</span>
-                        {inst.notes}
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </div>
+      <div className="flex flex-1 gap-6 overflow-hidden">
+        {/* Left Panel */}
+        <div className="w-80 bg-slate-800 rounded-xl border border-slate-700 flex flex-col overflow-hidden shrink-0">
+          <div className="p-4 border-b border-slate-700 bg-slate-800/80">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search runsheets..." 
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
+              />
+            </div>
+          </div>
+          <div className="overflow-y-auto flex-1">
+            {runsheetsList.map(rs => (
+              <button
+                key={rs.id}
+                onClick={() => setSelectedRunsheet(rs)}
+                className={`w-full text-left p-4 border-b border-slate-700/50 transition-colors flex flex-col gap-1 ${
+                  selectedRunsheet.id === rs.id ? 'bg-orange-500/10 border-l-2 border-l-orange-500' : 'hover:bg-slate-700/50'
+                }`}
+              >
+                <div className={`font-medium text-sm ${selectedRunsheet.id === rs.id ? 'text-orange-400' : 'text-slate-200'}`}>
+                  {rs.name}
+                </div>
+                <div className="text-xs text-slate-500 flex justify-between w-full">
+                  <span>{rs.project}</span>
+                  <span>{rs.tract}</span>
+                </div>
+              </button>
             ))}
           </div>
-        </Card>
-      ) : (
-        <Card className="border-rose-900/40 bg-slate-900">
-          <CardHeader>
-            <CardTitle className="text-rose-400">Title Gap & Curative Defect Analysis</CardTitle>
-            <CardDescription>Detected by Grounded AI Runsheet Verification Engine</CardDescription>
-          </CardHeader>
+        </div>
 
-          <div className="space-y-4">
-            <EvidenceBox
-              source="Rees County Deed Registry Vol 84 Pg 302 & Probate Vol 12 Pg 88"
-              retrievedAt={new Date().toISOString()}
-              confidenceScore={94}
-              verificationState="ATTORNEY_VERIFIED"
-              assumptions={['Foreign probate in Oklahoma not recorded in Reeves County, TX']}
-            >
-              <div className="space-y-2 text-xs text-slate-200">
-                <p className="font-bold text-rose-400">Defect #1: Unrecorded Foreign Probate (Instrument #3)</p>
-                <p>
-                  Henry T. Miller passed away in Oklahoma. The foreign probate decree was recorded in Oklahoma County, but an ancillary probate or Affidavit of Heirship has not been filed in Reeves County, TX.
-                </p>
-                <p className="font-semibold text-amber-300">Required Curative Action: Prepare and record Affidavit of Heirship signed by two disinterested witnesses in Reeves County registry prior to division order approval.</p>
-              </div>
-            </EvidenceBox>
+        {/* Right Panel */}
+        <div className="flex-1 bg-slate-800 rounded-xl border border-slate-700 flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-800/80">
+            <div>
+              <h2 className="font-semibold text-lg text-white">{selectedRunsheet.name}</h2>
+              <div className="text-sm text-slate-400">Last updated: {selectedRunsheet.updatedAt}</div>
+            </div>
           </div>
-        </Card>
+          
+          <div className="overflow-x-auto flex-1 p-4">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b-2 border-slate-600 text-left text-slate-400">
+                  <th className="pb-2 w-12 text-center">Entry</th>
+                  <th className="pb-2 px-2">Instrument</th>
+                  <th className="pb-2 px-2">Date</th>
+                  <th className="pb-2 px-2">Vol/Pg</th>
+                  <th className="pb-2 px-2">Grantor</th>
+                  <th className="pb-2 px-2">Grantee</th>
+                  <th className="pb-2 px-2">Notes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/50">
+                {mockEntries.map((entry) => (
+                  <tr key={entry.id} className="hover:bg-slate-700/30">
+                    <td className="py-3 text-center text-slate-500 font-mono">{entry.entryNum}</td>
+                    <td className="py-3 px-2 font-medium text-slate-300">{entry.instrument}</td>
+                    <td className="py-3 px-2 text-slate-400">{entry.date}</td>
+                    <td className="py-3 px-2 text-slate-400">{entry.volPage}</td>
+                    <td className="py-3 px-2 text-slate-300">{entry.grantor}</td>
+                    <td className="py-3 px-2 text-slate-300">{entry.grantee}</td>
+                    <td className="py-3 px-2 text-slate-400">
+                      <div className="flex items-start gap-2">
+                        {entry.defect && <AlertCircle size={16} className="text-red-400 mt-0.5 shrink-0" />}
+                        {entry.notes}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+          toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+        } text-white animate-fade-in-up`}>
+          {toast.type === 'success' ? <CheckCircle size={20} /> : <X size={20} />}
+          {toast.message}
+        </div>
       )}
     </div>
   );

@@ -1,195 +1,203 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, FractionBadge, EstateBadge } from '@land-intelligence/ui';
-import { MapPin, Plus, Scale, FileText, CheckCircle2, ShieldAlert, Layers } from 'lucide-react';
-import { TractMap } from "../../components/gis/TractMap";
-import Link from 'next/link';
-import { rationalToDecimal } from '@land-intelligence/domain';
-import { useDrilldown } from '@/components/providers/DrilldownProvider';
+import { Plus, Search, Filter, MoreVertical, X, CheckCircle, MapPin } from 'lucide-react';
+
+interface Tract {
+  id: string;
+  tractNum: string;
+  county: string;
+  state: string;
+  legalDesc: string;
+  grossAcres: number;
+  nma: number;
+  surfaceOwner: string;
+  mineralOwner: string;
+  leaseStatus: 'Open' | 'Leased' | 'HBP' | 'Negotiating';
+  titleStatus: string;
+}
+
+const initialTracts: Tract[] = [
+  { id: '1', tractNum: 'TR-1045', county: 'Midland', state: 'TX', legalDesc: 'Sec 12, Blk 39, T-1-S, T&P RR Co Survey', grossAcres: 640.0, nma: 160.0, surfaceOwner: 'Smith Ranch LLC', mineralOwner: 'John Doe', leaseStatus: 'Open', titleStatus: 'Cleared' },
+  { id: '2', tractNum: 'TR-1046', county: 'Midland', state: 'TX', legalDesc: 'Sec 13, Blk 39, T-1-S, T&P RR Co Survey', grossAcres: 320.0, nma: 320.0, surfaceOwner: 'Texas Land Trust', mineralOwner: 'Texas Land Trust', leaseStatus: 'Leased', titleStatus: 'Needs Curative' },
+  { id: '3', tractNum: 'TR-2201', county: 'Karnes', state: 'TX', legalDesc: 'A-124, J. Maria Survey', grossAcres: 150.5, nma: 75.25, surfaceOwner: 'Garcia Family LP', mineralOwner: 'Maria Garcia', leaseStatus: 'HBP', titleStatus: 'Cleared' },
+  { id: '4', tractNum: 'TR-3390', county: 'Washington', state: 'PA', legalDesc: 'Parcel 12-44-A, Smith Twp', grossAcres: 85.0, nma: 85.0, surfaceOwner: 'William Penn', mineralOwner: 'William Penn', leaseStatus: 'Negotiating', titleStatus: 'In Review' },
+  { id: '5', tractNum: 'TR-4011', county: 'McKenzie', state: 'ND', legalDesc: 'NW/4 Sec 5, T150N, R99W', grossAcres: 160.0, nma: 40.0, surfaceOwner: 'Dakota Farms Inc', mineralOwner: 'State of ND', leaseStatus: 'Leased', titleStatus: 'Cleared' },
+];
 
 export default function TractsPage() {
-  const { push } = useDrilldown();
-  const [selectedTractId, setSelectedTractId] = useState('trc-104');
+  const [tracts, setTracts] = useState<Tract[]>(initialTracts);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  const tracts = [
-    {
-      id: 'trc-104',
-      tractNumber: 'T-104',
-      clientTractRef: 'PNR-T104',
-      county: 'Reeves',
-      state: 'TX',
-      legalDescription: 'NW1/4 Section 14, Block 55, PSL Survey',
-      grossAcres: 160.0,
-      grossMineralAcres: 160.0,
-      netMineralAcres: 40.0,
-      fraction: { numerator: 1n, denominator: 4n },
-      surfaceOwnerName: 'Reeves Ranch Holdings LLC',
-      mineralOwnerName: 'Estate of Henry T. Miller',
-      executiveRightsOwnerName: 'Miller Family Trust',
-      leaseholdStatus: 'OPEN_UNLEASED',
-      hbpStatus: 'NOT_HBP',
-      titleStatus: 'CURATIVE_REQUIRED',
-    },
-    {
-      id: 'trc-105',
-      tractNumber: 'T-105',
-      clientTractRef: 'PNR-T105',
-      county: 'Reeves',
-      state: 'TX',
-      legalDescription: 'NE1/4 Section 14, Block 55, PSL Survey',
-      grossAcres: 160.0,
-      grossMineralAcres: 160.0,
-      netMineralAcres: 80.0,
-      fraction: { numerator: 1n, denominator: 2n },
-      surfaceOwnerName: 'Vance Energy Investments',
-      mineralOwnerName: 'Pecos River Minerals LLC',
-      executiveRightsOwnerName: 'Pecos River Minerals LLC',
-      leaseholdStatus: 'PRODUCING_HBP',
-      hbpStatus: 'HBP_PRODUCING',
-      titleStatus: 'CLEARED_TITLE',
-    },
-  ];
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-  const activeTract = tracts.find((t) => t.id === selectedTractId) || tracts[0];
+  const handleAddTract = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsModalOpen(false);
+    showToast('Tract added successfully');
+  };
+
+  const filteredTracts = tracts.filter(t => t.tractNum.toLowerCase().includes(search.toLowerCase()) || t.legalDesc.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-900 text-white p-8">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-amber-400" /> Canonical Land Tract Records
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Centralized tract package managing severed surface, mineral, executive, and royalty estates with exact fraction math.
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">Tracts Manager</h1>
+          <p className="text-slate-400">Manage land tracts, descriptions, and basic ownership.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>
-            Add Canonical Tract
-          </Button>
-        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          <Plus size={20} />
+          Add Tract
+        </button>
       </div>
 
-      {/* Interactive Map UI */}
-      <Card className="border-slate-800 bg-slate-900 overflow-hidden relative">
-        <div className="absolute top-4 left-4 z-10 pointer-events-none">
-          <Badge variant="default" className="bg-slate-950/80 backdrop-blur-sm border-slate-800 pointer-events-auto">
-            <MapPin className="w-3 h-3 mr-1 inline" /> GIS Map Layer
-          </Badge>
-        </div>
-        <div className="h-64 w-full bg-slate-950 flex items-center justify-center relative">
-          <TractMap 
-            tracts={tracts} 
-            selectedTractId={selectedTractId}
-            onTractSelect={(id) => setSelectedTractId(id || '')}
+      <div className="flex gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 text-slate-400" size={20} />
+          <input 
+            type="text" 
+            placeholder="Search tracts or legal descriptions..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
-      </Card>
+        <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+          <Filter size={20} />
+          Filters
+        </button>
+      </div>
 
-      {/* Tract Table & Detail View */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card className="border-slate-800 bg-slate-900">
-            <CardHeader>
-              <CardTitle>Tract Package Directory</CardTitle>
-              <CardDescription>Click any tract row to inspect severed estates and title runsheet linkage</CardDescription>
-            </CardHeader>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left text-slate-300">
-                <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
-                  <tr>
-                    <th className="p-3">Tract Ref</th>
-                    <th className="p-3">Legal Description</th>
-                    <th className="p-3">Gross AC</th>
-                    <th className="p-3">NMA Interest</th>
-                    <th className="p-3">Lease Status</th>
-                    <th className="p-3">Title Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
-                  {tracts.map((t) => (
-                    <tr
-                      key={t.id}
-                      onClick={() => setSelectedTractId(t.id)}
-                      className={`cursor-pointer transition-colors ${
-                        selectedTractId === t.id ? 'bg-amber-950/40 text-white' : 'hover:bg-slate-800/40'
-                      }`}
-                    >
-                      <td className="p-3 font-bold text-amber-400">{t.tractNumber} ({t.clientTractRef})</td>
-                      <td className="p-3 text-slate-300 truncate max-w-[200px]">{t.legalDescription}</td>
-                      <td className="p-3 text-white">{t.grossAcres.toFixed(1)} AC</td>
-                      <td className="p-3">
-                        <FractionBadge fraction={t.fraction} label="NMA" />
-                      </td>
-                      <td className="p-3">
-                        <Badge variant={t.leaseholdStatus === 'OPEN_UNLEASED' ? 'danger' : 'success'}>
-                          {t.leaseholdStatus.replace('_', ' ')}
-                        </Badge>
-                      </td>
-                      <td className="p-3">
-                        <Badge variant={t.titleStatus === 'CLEARED_TITLE' ? 'success' : 'warning'}>
-                          {t.titleStatus.replace('_', ' ')}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-
-        {/* Right Detail Side Panel */}
-        <div>
-          <Card className="border-amber-900/40 bg-slate-900">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-amber-400">Tract {activeTract.tractNumber} Details</CardTitle>
-                <Badge variant="warning">{activeTract.clientTractRef}</Badge>
-              </div>
-              <CardDescription>{activeTract.legalDescription}</CardDescription>
-            </CardHeader>
-
-            <div className="space-y-4 text-xs font-mono">
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
-                <span className="text-slate-500 uppercase text-[10px] font-semibold">Severed Estates Status</span>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <EstateBadge category="SURFACE_ESTATE" name={activeTract.surfaceOwnerName} />
-                  <EstateBadge category="MINERAL_ESTATE" name={activeTract.mineralOwnerName} />
-                  <EstateBadge category="EXECUTIVE_RIGHTS" name={activeTract.executiveRightsOwnerName} />
-                </div>
-              </div>
-
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase text-[10px] font-semibold">Exact NMA Interest Calculation</span>
-                <p className="text-slate-200">Gross Mineral Acres: <strong className="text-white">{activeTract.grossMineralAcres} AC</strong></p>
-                <p className="text-slate-200">Mineral Fraction: <strong className="text-amber-300">{activeTract.fraction.numerator.toString()}/{activeTract.fraction.denominator.toString()} ({(rationalToDecimal(activeTract.fraction) * 100).toFixed(4)}%)</strong></p>
-                <p className="text-slate-200">Net Mineral Acres: <strong className="text-emerald-400 font-bold">{activeTract.netMineralAcres.toFixed(4)} NMA</strong></p>
-              </div>
-
-              <div className="pt-2 flex gap-2">
-                <Button 
-                  variant="primary" 
-                  size="sm" 
-                  className="w-full" 
-                  icon={<Layers className="w-4 h-4" />}
-                  onClick={() => push({ id: activeTract.id, type: 'TRACT', label: activeTract.tractNumber })}
-                >
-                  Open Tract Drilldown
-                </Button>
-                <Link href="/runsheets" className="w-full">
-                  <Button variant="outline" size="sm" className="w-full border-slate-700" icon={<FileText className="w-4 h-4" />}>
-                    View Runsheet
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </Card>
+      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-800/50 border-b border-slate-700 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-4">Tract #</th>
+                <th className="px-6 py-4">Location</th>
+                <th className="px-6 py-4">Legal Desc</th>
+                <th className="px-6 py-4">Gross/NMA</th>
+                <th className="px-6 py-4">Surface / Mineral Owner</th>
+                <th className="px-6 py-4">Lease Status</th>
+                <th className="px-6 py-4">Title Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+              {filteredTracts.map((tract) => (
+                <tr key={tract.id} className="hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => showToast(`Viewing ${tract.tractNum}`)}>
+                  <td className="px-6 py-4 font-medium text-indigo-400">{tract.tractNum}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <MapPin size={14} className="text-slate-400" />
+                      {tract.county}, {tract.state}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm truncate max-w-xs" title={tract.legalDesc}>{tract.legalDesc}</td>
+                  <td className="px-6 py-4 text-sm">
+                    {tract.grossAcres} / <span className="text-slate-300 font-medium">{tract.nma}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    <div className="text-slate-300">{tract.surfaceOwner}</div>
+                    <div className="text-slate-500 text-xs">{tract.mineralOwner}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      tract.leaseStatus === 'Open' ? 'bg-slate-600 text-slate-200' :
+                      tract.leaseStatus === 'Leased' ? 'bg-indigo-500/20 text-indigo-400' :
+                      tract.leaseStatus === 'HBP' ? 'bg-emerald-500/20 text-emerald-400' :
+                      'bg-amber-500/20 text-amber-400'
+                    }`}>
+                      {tract.leaseStatus}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-300">{tract.titleStatus}</td>
+                  <td className="px-6 py-4 text-right">
+                    <button className="text-slate-400 hover:text-white" onClick={(e) => { e.stopPropagation(); showToast('Menu opened'); }}>
+                      <MoreVertical size={20} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-xl border border-slate-700 w-full max-w-2xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Add New Tract</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleAddTract} className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-1">
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Tract #</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" required />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-sm font-medium text-slate-400 mb-1">State</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" required />
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-sm font-medium text-slate-400 mb-1">County</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Legal Description</label>
+                <textarea rows={2} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" required></textarea>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Gross Acres</label>
+                  <input type="number" step="0.01" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">NMA</label>
+                  <input type="number" step="0.01" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Surface Owner</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Mineral Owner</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-indigo-500 focus:outline-none" />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save Tract</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+          toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+        } text-white animate-fade-in-up`}>
+          {toast.type === 'success' ? <CheckCircle size={20} /> : <X size={20} />}
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

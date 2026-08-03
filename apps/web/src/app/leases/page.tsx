@@ -1,105 +1,211 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
-import { FileCheck, ShieldCheck, CheckCircle2, Clock, Layers } from 'lucide-react';
+import { Plus, Search, Filter, X, CheckCircle, Download, FileSignature } from 'lucide-react';
+
+interface Lease {
+  id: string;
+  leaseNum: string;
+  lessor: string;
+  lessee: string;
+  effectiveDate: string;
+  term: string;
+  expiration: string;
+  royalty: string;
+  bonus: number;
+  status: 'Active' | 'Expired' | 'HBP';
+}
+
+const mockLeases: Lease[] = [
+  { id: '1', leaseNum: 'TX-OGL-1001', lessor: 'Smith Family Trust', lessee: 'ExxonMobil', effectiveDate: '2023-01-15', term: '3 Years', expiration: '2026-01-15', royalty: '1/4', bonus: 1500, status: 'Active' },
+  { id: '2', leaseNum: 'TX-OGL-1002', lessor: 'John Doe', lessee: 'ExxonMobil', effectiveDate: '2021-06-01', term: '3 Years', expiration: '2024-06-01', royalty: '3/16', bonus: 1200, status: 'Active' },
+  { id: '3', leaseNum: 'PA-OGL-405', lessor: 'William Penn', lessee: 'Chesapeake', effectiveDate: '2015-10-10', term: '5 Years', expiration: '2020-10-10', royalty: '15%', bonus: 500, status: 'HBP' },
+  { id: '4', leaseNum: 'ND-OGL-882', lessor: 'Dakota Farms Inc', lessee: 'Continental', effectiveDate: '2019-03-20', term: '3 Years', expiration: '2022-03-20', royalty: '1/6', bonus: 800, status: 'Expired' },
+  { id: '5', leaseNum: 'TX-OGL-1055', lessor: 'Garcia Family LP', lessee: 'EOG Resources', effectiveDate: '2012-08-01', term: '3 Years', expiration: '2015-08-01', royalty: '1/4', bonus: 2500, status: 'HBP' },
+];
 
 export default function LeasesPage() {
-  const leases = [
-    {
-      id: 'lse-101',
-      leaseName: 'Miller 14-A Oil & Gas Lease',
-      lessor: 'Estate of Henry T. Miller',
-      lessee: 'Pioneer Natural Resources',
-      leaseDate: '2021-03-15',
-      primaryTermYears: 3,
-      royaltyFraction: '1/5th (20.0%)',
-      grossAcres: 160.0,
-      hasPughClause: true,
-      hasShutInClause: true,
-      hasContinuousDevelopment: false,
-      depthSeveranceTop: 'Surface',
-      depthSeveranceBottom: '100ft below base of Wolfcamp',
-      hbpStatus: 'HBP_PRODUCING',
-      producingWell: 'Miller 14-1H (API #42-389-34102)',
-      dailyProduction: '1,240 BOEPD',
-    },
-  ];
+  const [leases, setLeases] = useState<Lease[]>(mockLeases);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleAddLease = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsModalOpen(false);
+    showToast('Lease added successfully');
+  };
+
+  const filteredLeases = leases.filter(l => l.leaseNum.toLowerCase().includes(search.toLowerCase()) || l.lessor.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-900 text-white p-8">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <FileCheck className="w-5 h-5 text-amber-400" /> Leases & Held-By-Production (HBP) Workspace
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+            <FileSignature className="text-lime-500" />
+            Lease Records
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Oil & Gas Lease administration, primary/secondary terms, Pugh clauses, shut-in provisions, and production evidence chains.
-          </p>
+          <p className="text-slate-400">Manage oil & gas leases, terms, and expirations.</p>
         </div>
-        <Badge variant="success">1 Active Producing Lease</Badge>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => showToast('Exporting to CSV...')}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            <Download size={20} />
+            Export
+          </button>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-lime-600 hover:bg-lime-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            <Plus size={20} />
+            Add Lease
+          </button>
+        </div>
       </div>
 
-      {/* Leases Table */}
-      <Card className="border-slate-800 bg-slate-900">
-        <CardHeader>
-          <CardTitle>Active Lease Directory</CardTitle>
-          <CardDescription>Lessor/Lessee details, royalty rate, Depth Severances, and producing well evidence</CardDescription>
-        </CardHeader>
+      <div className="flex gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 text-slate-400" size={20} />
+          <input 
+            type="text" 
+            placeholder="Search lease # or lessor..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-lime-500 transition-colors"
+          />
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+          <Filter size={20} />
+          Filters
+        </button>
+      </div>
 
+      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
-              <tr>
-                <th className="p-3">Lease Name</th>
-                <th className="p-3">Royalty</th>
-                <th className="p-3">Depth Limits</th>
-                <th className="p-3">Clauses</th>
-                <th className="p-3">HBP Status</th>
-                <th className="p-3">Producing Well</th>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-800/50 border-b border-slate-700 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-4">Lease #</th>
+                <th className="px-6 py-4">Lessor</th>
+                <th className="px-6 py-4">Lessee</th>
+                <th className="px-6 py-4">Effective Date</th>
+                <th className="px-6 py-4">Term</th>
+                <th className="px-6 py-4">Expiration</th>
+                <th className="px-6 py-4">Royalty</th>
+                <th className="px-6 py-4">Bonus / NMA</th>
+                <th className="px-6 py-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
-              {leases.map((l) => (
-                <tr key={l.id} className="hover:bg-slate-800/40 align-top">
-                  <td className="p-3">
-                    <p className="font-bold text-amber-400">{l.leaseName}</p>
-                    <p className="text-[10px] text-slate-400 mt-1">{l.lessor} → {l.lessee}</p>
+            <tbody className="divide-y divide-slate-700">
+              {filteredLeases.map((lease) => (
+                <tr key={lease.id} className="hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => showToast(`Viewing lease ${lease.leaseNum}`)}>
+                  <td className="px-6 py-4 font-medium text-lime-400">{lease.leaseNum}</td>
+                  <td className="px-6 py-4">{lease.lessor}</td>
+                  <td className="px-6 py-4">{lease.lessee}</td>
+                  <td className="px-6 py-4 text-slate-300">{lease.effectiveDate}</td>
+                  <td className="px-6 py-4 text-slate-300">{lease.term}</td>
+                  <td className="px-6 py-4 text-slate-300">{lease.expiration}</td>
+                  <td className="px-6 py-4 font-medium">{lease.royalty}</td>
+                  <td className="px-6 py-4">${lease.bonus.toLocaleString()}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      lease.status === 'Active' ? 'bg-lime-500/20 text-lime-400' :
+                      lease.status === 'HBP' ? 'bg-sky-500/20 text-sky-400' :
+                      'bg-slate-600 text-slate-300'
+                    }`}>
+                      {lease.status}
+                    </span>
                   </td>
-                  <td className="p-3 text-emerald-400 font-bold">{l.royaltyFraction}</td>
-                  <td className="p-3 text-slate-300 space-y-1">
-                    <p>Top: <Badge variant="default" className="text-[9px] bg-slate-800">{l.depthSeveranceTop}</Badge></p>
-                    <p>Btm: <Badge variant="default" className="text-[9px] bg-slate-800">{l.depthSeveranceBottom}</Badge></p>
-                  </td>
-                  <td className="p-3 space-y-1">
-                    {l.hasPughClause && <Badge variant="warning" className="block w-fit text-[9px]">PUGH CLAUSE</Badge>}
-                    {l.hasShutInClause && <Badge variant="info" className="block w-fit text-[9px]">SHUT-IN</Badge>}
-                    {l.hasContinuousDevelopment && <Badge variant="danger" className="block w-fit text-[9px]">CONT. DEV</Badge>}
-                  </td>
-                  <td className="p-3">
-                    <Badge variant="success" className="font-mono">{l.hbpStatus}</Badge>
-                  </td>
-                  <td className="p-3 text-purple-300 font-semibold">{l.producingWell}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      </div>
 
-        <div className="p-4">
-          <EvidenceBox
-            source="Texas Railroad Commission (RRC) Production Reports & Well API #42-389-34102"
-            retrievedAt={new Date().toISOString()}
-            confidenceScore={99}
-            verificationState="ATTORNEY_VERIFIED"
-          >
-            <p className="text-xs text-slate-300">
-              HBP Evidence Chain Provenance: Miller 14-1H has produced continuously for 34 consecutive months (1,240 BOEPD average), legally maintaining the 160-acre leasehold past primary expiration date under Texas habendum clause case law.
-            </p>
-          </EvidenceBox>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-xl border border-slate-700 w-full max-w-3xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Add New Lease</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleAddLease} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Lease Number</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Status</label>
+                  <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none">
+                    <option>Active</option>
+                    <option>HBP</option>
+                    <option>Expired</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Lessor</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Lessee</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Effective Date</label>
+                  <input type="date" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Primary Term (Years)</label>
+                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Expiration Date</label>
+                  <input type="date" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Royalty Fraction</label>
+                  <input type="text" placeholder="e.g. 1/4" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Bonus per NMA ($)</label>
+                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-lime-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700">Save Lease</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </Card>
+      )}
+
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+          toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+        } text-white animate-fade-in-up`}>
+          {toast.type === 'success' ? <CheckCircle size={20} /> : <X size={20} />}
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

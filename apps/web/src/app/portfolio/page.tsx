@@ -1,120 +1,109 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
-import { Building2, DollarSign, Calendar, TrendingUp, CheckCircle2 } from 'lucide-react';
-import { getPortfolioHoldings } from '@/actions/crmActions';
+import React, { useState } from 'react';
+import { PieChart, Plus, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
 
-export default function PortfolioPage() {
-  const [holdings, setHoldings] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+const MOCK_HOLDINGS = [
+  { id: '1', address: 'Riverside 120 AC', apn: '123-456-789', acqDate: '2022-05-10', costBasis: 1200000, currentVal: 1850000, status: 'Owned' },
+  { id: '2', address: 'Smith Tract - 40 AC', apn: '987-654-321', acqDate: '2023-01-15', costBasis: 450000, currentVal: 480000, status: 'Under Contract' },
+  { id: '3', address: 'Pine Valley Lot 4', apn: '456-789-123', acqDate: '2021-11-20', costBasis: 150000, currentVal: 320000, status: 'Listed' },
+];
 
-  useEffect(() => {
-    getPortfolioHoldings().then(data => {
-      setHoldings(data);
-      setIsLoading(false);
-    });
-  }, []);
+export default function PortfolioManager() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toast, setToast] = useState<{message: string} | null>(null);
+
+  const showToast = (message: string) => {
+    setToast({ message });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const totalBasis = MOCK_HOLDINGS.reduce((acc, curr) => acc + curr.costBasis, 0);
+  const totalValue = MOCK_HOLDINGS.reduce((acc, curr) => acc + curr.currentVal, 0);
+  const totalGain = totalValue - totalBasis;
+  const roiPct = (totalGain / totalBasis) * 100;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-emerald-400" /> Portfolio Holdings & Note Servicing Hub
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Track owned inventory, cost basis, unrealized profit, seller-financing notes, interest collected, and payment schedules.
-          </p>
+    <div className="min-h-screen bg-slate-900 text-slate-200 p-6">
+      {toast && (
+        <div className="fixed bottom-4 right-4 p-4 rounded-md shadow-lg bg-emerald-600 text-white z-50 animate-in fade-in">
+          {toast.message}
         </div>
-        <Badge variant="success">{holdings.length} Owned Holdings | 1 Note Active</Badge>
+      )}
+
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center">
+            <PieChart className="w-6 h-6 mr-3 text-emerald-500" />
+            Portfolio Manager
+          </h1>
+          <p className="text-slate-400">Track holdings and asset valuations</p>
+        </div>
+        <button onClick={() => setIsModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md flex items-center transition-colors">
+          <Plus className="w-4 h-4 mr-2" /> Add Holding
+        </button>
       </div>
 
-      {/* Portfolio Holdings Table */}
-      <Card className="border-slate-800 bg-slate-900">
-        <CardHeader>
-          <CardTitle>Owned Land Inventory</CardTitle>
-          <CardDescription>Property APN, acquisition date, purchase cost basis, market value, and holding days</CardDescription>
-        </CardHeader>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-slate-800 p-5 rounded-lg border border-slate-700">
+          <div className="text-slate-400 text-sm mb-1">Total Cost Basis</div>
+          <div className="text-3xl font-bold text-white">${(totalBasis/1000000).toFixed(2)}M</div>
+        </div>
+        <div className="bg-slate-800 p-5 rounded-lg border border-slate-700">
+          <div className="text-slate-400 text-sm mb-1">Current Value</div>
+          <div className="text-3xl font-bold text-emerald-400">${(totalValue/1000000).toFixed(2)}M</div>
+        </div>
+        <div className="bg-slate-800 p-5 rounded-lg border border-slate-700">
+          <div className="text-slate-400 text-sm mb-1">Unrealized Gain</div>
+          <div className="text-3xl font-bold text-emerald-400 flex items-center">
+            <ArrowUpRight className="w-6 h-6 mr-1" /> ${(totalGain/1000000).toFixed(2)}M
+          </div>
+        </div>
+        <div className="bg-slate-800 p-5 rounded-lg border border-slate-700">
+          <div className="text-slate-400 text-sm mb-1">Portfolio ROI</div>
+          <div className="text-3xl font-bold text-white">{roiPct.toFixed(1)}%</div>
+        </div>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
-              <tr>
-                <th className="p-3">APN / Location</th>
-                <th className="p-3">Acquisition Date</th>
-                <th className="p-3">Purchase Price</th>
-                <th className="p-3">Total Cost Basis</th>
-                <th className="p-3">Est. Current Value</th>
-                <th className="p-3">Unrealized Profit</th>
-                <th className="p-3">Holding Status</th>
+      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-slate-900/50 border-b border-slate-700 text-slate-400 text-sm">
+              <th className="p-4 font-medium">Asset / APN</th>
+              <th className="p-4 font-medium">Acq. Date</th>
+              <th className="p-4 font-medium">Cost Basis</th>
+              <th className="p-4 font-medium">Current Value</th>
+              <th className="p-4 font-medium">Gain</th>
+              <th className="p-4 font-medium">Status</th>
+              <th className="p-4 font-medium text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MOCK_HOLDINGS.map(holding => (
+              <tr key={holding.id} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                <td className="p-4">
+                  <div className="font-medium text-white">{holding.address}</div>
+                  <div className="text-xs text-slate-400">APN: {holding.apn}</div>
+                </td>
+                <td className="p-4 text-sm text-slate-300">{holding.acqDate}</td>
+                <td className="p-4 font-medium">${holding.costBasis.toLocaleString()}</td>
+                <td className="p-4 font-medium text-emerald-400">${holding.currentVal.toLocaleString()}</td>
+                <td className="p-4 text-emerald-400 text-sm flex items-center mt-2">
+                  <ArrowUpRight className="w-4 h-4 mr-1" /> {(((holding.currentVal - holding.costBasis)/holding.costBasis)*100).toFixed(0)}%
+                </td>
+                <td className="p-4">
+                  <span className="bg-slate-700 px-2 py-1 rounded text-xs text-slate-300">{holding.status}</span>
+                </td>
+                <td className="p-4 text-right">
+                  <button onClick={() => showToast('Opened valuation update modal')} className="text-slate-400 hover:text-emerald-400 p-2 bg-slate-900 rounded border border-slate-700 text-xs flex items-center ml-auto">
+                    <RefreshCw className="w-3 h-3 mr-1" /> Update Val
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
-              {holdings.length === 0 && !isLoading && (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-500">No active portfolio holdings found in the database.</td>
-                </tr>
-              )}
-              {holdings.map((holding) => (
-                <tr key={holding.id} className="hover:bg-slate-800/40">
-                  <td className="p-3 font-semibold text-white">APN: {holding.apn} ({holding.county}, {holding.state})</td>
-                  <td className="p-3">{new Date(holding.acquisitionDate).toISOString().split('T')[0]}</td>
-                  <td className="p-3">${holding.purchasePrice.toLocaleString()}</td>
-                  <td className="p-3 text-slate-200">${holding.totalCostBasis.toLocaleString()}</td>
-                  <td className="p-3 text-emerald-400 font-bold">${holding.estimatedCurrentValue.toLocaleString()}</td>
-                  <td className="p-3 text-emerald-400 font-bold">+${holding.unrealizedProfit.toLocaleString()}</td>
-                  <td className="p-3">
-                    <Badge variant="info">{holding.status}</Badge>
-                  </td>
-                </tr>
-              ))}
-              
-              {/* Keep mock data as fallback if DB is empty for demo purposes */}
-              {holdings.length === 0 && isLoading && (
-                 <tr className="hover:bg-slate-800/40 opacity-50">
-                   <td className="p-3 font-semibold text-white">Loading database...</td>
-                   <td colSpan={6}></td>
-                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Seller Financing Servicing Card */}
-      <Card className="border-purple-900/40 bg-slate-900">
-        <CardHeader>
-          <CardTitle className="text-purple-300">Active Owner Finance Notes Servicing</CardTitle>
-          <CardDescription>Monthly payment schedule, principal/interest collection, and buyer balance</CardDescription>
-        </CardHeader>
-
-        <div className="p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-2">
-          <div className="flex justify-between items-center text-slate-200">
-            <span>Buyer Name: Marcus Vance</span>
-            <Badge variant="success">CURRENT — ON TIME</Badge>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800">
-            <div>
-              <span className="text-slate-500 text-[10px] uppercase">Monthly Payment</span>
-              <p className="font-bold text-white mt-0.5">$250.00 / mo</p>
-            </div>
-            <div>
-              <span className="text-slate-500 text-[10px] uppercase">Current Balance</span>
-              <p className="font-bold text-amber-300 mt-0.5">$14,250.00</p>
-            </div>
-            <div>
-              <span className="text-slate-500 text-[10px] uppercase">Interest Rate</span>
-              <p className="font-bold text-slate-200 mt-0.5">9.9% APR</p>
-            </div>
-            <div>
-              <span className="text-slate-500 text-[10px] uppercase">Next Due Date</span>
-              <p className="font-bold text-emerald-400 mt-0.5">2026-05-01</p>
-            </div>
-          </div>
-        </div>
-      </Card>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -1,119 +1,200 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button } from '@land-intelligence/ui';
-import { Users, Mail, Phone, Calendar, Send, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react';
-import { getSellers } from '@/actions/crmActions';
-import { logCommunication } from '@/actions/communicationActions';
+import React, { useState } from 'react';
+import { Plus, Search, X, User } from 'lucide-react';
+
+interface Seller {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  properties: number;
+  motivation: 'Low' | 'Med' | 'High' | 'Urgent';
+  lastContact: string;
+  status: string;
+}
+
+const mockSellers: Seller[] = [
+  { id: '1', name: 'John Smith', phone: '(555) 123-4567', email: 'john@example.com', properties: 2, motivation: 'Med', lastContact: '2023-10-15', status: 'Active' },
+  { id: '2', name: 'Sarah Johnson', phone: '(555) 987-6543', email: 'sarah.j@example.com', properties: 1, motivation: 'Urgent', lastContact: '2023-10-20', status: 'Negotiating' },
+  { id: '3', name: 'Robert Davis', phone: '(555) 456-7890', email: 'rdavis88@example.com', properties: 5, motivation: 'Low', lastContact: '2023-09-01', status: 'Nurture' },
+  { id: '4', name: 'Mary Wilson', phone: '(555) 234-5678', email: 'm.wilson@example.com', properties: 1, motivation: 'High', lastContact: '2023-10-18', status: 'Active' },
+  { id: '5', name: 'James Brown', phone: '(555) 876-5432', email: 'jbrown@example.com', properties: 3, motivation: 'Med', lastContact: '2023-10-10', status: 'Closed' },
+];
 
 export default function SellersPage() {
-  const [sellers, setSellers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    getSellers().then(data => {
-      setSellers(data);
-      setIsLoading(false);
-    });
-  }, []);
+  const showToast = (message: string) => {
+    setToast({ message, type: 'success' });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-  const handleMessage = async (sellerId: string) => {
-    const text = window.prompt('Enter your message to the seller:');
-    if (!text) return;
-    
-    await logCommunication(sellerId, 'SMS', text);
-    alert('Message sent successfully!');
-    
-    // Refresh
-    const data = await getSellers();
-    setSellers(data);
+  const getMotivationColor = (level: string) => {
+    switch (level) {
+      case 'Urgent': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      case 'High': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
+      case 'Med': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      default: return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
+    }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-emerald-400" /> Seller CRM & Multi-Channel Outreach Pipeline
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Manage seller relationships, direct mail campaign responses, phone logs, and offer delivery timelines.
-          </p>
+    <div className="min-h-screen bg-slate-900 text-white p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-sky-400">Seller CRM</h1>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-md transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Seller
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm">
-            Add New Seller Record
-          </Button>
+
+        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center">
+          <Search className="w-5 h-5 text-slate-400 mr-3" />
+          <input 
+            type="text" 
+            placeholder="Search sellers by name, email, or phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-transparent border-none outline-none w-full text-white"
+          />
         </div>
-      </div>
 
-      {/* Seller CRM Table */}
-      <Card className="border-slate-800 bg-slate-900">
-        <CardHeader>
-          <CardTitle>Active Seller Pipeline</CardTitle>
-          <CardDescription>Seller motivation levels, contact timeline, asking price, and offer status</CardDescription>
-        </CardHeader>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
+        <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-900 text-slate-400">
               <tr>
-                <th className="p-3">Seller Name</th>
-                <th className="p-3">Associated Property</th>
-                <th className="p-3">Contact Email / Phone</th>
-                <th className="p-3">Motivation Level</th>
-                <th className="p-3">Asking Price</th>
-                <th className="p-3">Last Contact</th>
-                <th className="p-3">Status</th>
-                <th className="p-3 text-right">Actions</th>
+                <th className="px-4 py-3 cursor-pointer hover:text-white">Name</th>
+                <th className="px-4 py-3">Phone</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3 cursor-pointer hover:text-white">Properties</th>
+                <th className="px-4 py-3 cursor-pointer hover:text-white">Motivation</th>
+                <th className="px-4 py-3 cursor-pointer hover:text-white">Last Contact</th>
+                <th className="px-4 py-3 cursor-pointer hover:text-white">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
-              {sellers.length === 0 && !isLoading && (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">No sellers found in the database.</td>
+            <tbody className="divide-y divide-slate-700">
+              {mockSellers.filter(s => s.name.toLowerCase().includes(search.toLowerCase())).map((seller) => (
+                <tr key={seller.id} className="hover:bg-slate-700/50 cursor-pointer transition-colors" onClick={() => setSelectedSeller(seller)}>
+                  <td className="px-4 py-4 font-medium flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center mr-3">
+                      {seller.name.charAt(0)}
+                    </div>
+                    {seller.name}
+                  </td>
+                  <td className="px-4 py-4 text-slate-300">{seller.phone}</td>
+                  <td className="px-4 py-4 text-slate-300">{seller.email}</td>
+                  <td className="px-4 py-4">{seller.properties}</td>
+                  <td className="px-4 py-4">
+                    <span className={`px-2 py-1 rounded text-xs border ${getMotivationColor(seller.motivation)}`}>
+                      {seller.motivation}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-slate-300">{seller.lastContact}</td>
+                  <td className="px-4 py-4">
+                    <span className="px-2 py-1 bg-slate-700 rounded text-xs">{seller.status}</span>
+                  </td>
                 </tr>
-              )}
-              {sellers.map((seller) => {
-                const primaryProperty = seller.properties?.[0]?.property;
-                return (
-                  <tr key={seller.id} className="hover:bg-slate-800/40 group">
-                    <td className="p-3 font-semibold text-white">{seller.name}</td>
-                    <td className="p-3 text-emerald-400">
-                      {primaryProperty ? `APN: ${primaryProperty.apn} (${primaryProperty.acreage} AC)` : 'None'}
-                    </td>
-                    <td className="p-3">{seller.email || seller.phone || 'N/A'}</td>
-                    <td className="p-3">
-                      <Badge variant={seller.motivationLevel === 'HIGH' || seller.motivationLevel === 'URGENT' ? 'danger' : 'info'}>
-                        {seller.motivationLevel} MOTIVATION
-                      </Badge>
-                    </td>
-                    <td className="p-3 text-slate-200">{seller.askingPrice ? `$${seller.askingPrice.toLocaleString()}` : 'Unknown'}</td>
-                    <td className="p-3">{new Date(seller.updatedAt).toISOString().split('T')[0]}</td>
-                    <td className="p-3">
-                      <Badge variant="warning">AWAITING ACTION</Badge>
-                    </td>
-                    <td className="p-3 text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleMessage(seller.id)} className="gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <MessageSquare className="w-3 h-3" />
-                        Quick SMS
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-              
-              {sellers.length === 0 && isLoading && (
-                 <tr className="hover:bg-slate-800/40 opacity-50">
-                   <td className="p-3 font-semibold text-white">Loading database...</td>
-                   <td colSpan={7}></td>
-                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md border border-slate-700">
+            <h2 className="text-xl font-bold mb-4">Add New Seller</h2>
+            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Seller Added!'); }} className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Full Name</label>
+                <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Phone</label>
+                  <input required type="tel" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Email</label>
+                  <input type="email" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Motivation Level</label>
+                <select className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none">
+                  <option>Low</option>
+                  <option>Med</option>
+                  <option>High</option>
+                  <option>Urgent</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded transition-colors">Save Seller</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {selectedSeller && (
+        <div className="fixed inset-y-0 right-0 w-96 bg-slate-800 border-l border-slate-700 shadow-2xl p-6 z-50 overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">Seller Profile</h2>
+            <button onClick={() => setSelectedSeller(null)} className="p-1 hover:bg-slate-700 rounded">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-2xl">
+              <User className="w-8 h-8 text-slate-400" />
+            </div>
+            <div>
+              <div className="text-lg font-semibold">{selectedSeller.name}</div>
+              <span className={`px-2 py-0.5 mt-1 inline-block rounded text-xs border ${getMotivationColor(selectedSeller.motivation)}`}>
+                {selectedSeller.motivation} Motivation
+              </span>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="bg-slate-900 p-3 rounded border border-slate-700">
+              <div className="text-sm text-slate-400">Contact Info</div>
+              <div className="mt-1">{selectedSeller.phone}</div>
+              <div className="mt-1 text-sky-400">{selectedSeller.email}</div>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Linked Properties ({selectedSeller.properties})</h3>
+              <div className="bg-slate-900 p-3 rounded border border-slate-700 text-sm">
+                <div className="flex justify-between py-1">
+                  <span>APN: 123-456-78</span>
+                  <span className="text-slate-400">Costilla, CO</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Recent Activity</h3>
+              <div className="text-sm text-slate-400 space-y-2">
+                <div className="flex justify-between"><span>Called left VM</span><span>{selectedSeller.lastContact}</span></div>
+                <div className="flex justify-between"><span>Sent Offer Letter</span><span>2023-10-01</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-4 right-4 px-4 py-2 bg-sky-600 rounded shadow-lg">
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

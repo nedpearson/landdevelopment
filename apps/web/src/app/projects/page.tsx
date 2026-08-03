@@ -1,235 +1,201 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
-import { FolderKanban, Plus, Briefcase, MapPin, DollarSign, Users, ChevronRight, Filter } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Search, Filter, MoreVertical, X, CheckCircle, FileText, ChevronRight } from 'lucide-react';
 
-import { getLandProjects, createLandProject } from '@/actions/projectActions';
+interface Project {
+  id: string;
+  name: string;
+  client: string;
+  type: string;
+  state: string;
+  county: string;
+  targetAcres: number;
+  budget: number;
+  status: 'Active' | 'Complete' | 'On Hold';
+}
+
+const initialProjects: Project[] = [
+  { id: '1', name: 'Permian Alpha', client: 'ExxonMobil', type: 'Lease Acquisition', state: 'TX', county: 'Midland', targetAcres: 5000, budget: 15000000, status: 'Active' },
+  { id: '2', name: 'Eagle Ford Extension', client: 'EOG Resources', type: 'MOR', state: 'TX', county: 'Karnes', targetAcres: 2500, budget: 3500000, status: 'Active' },
+  { id: '3', name: 'Marcellus Phase 3', client: 'Chesapeake Energy', type: 'Title Runsheet', state: 'PA', county: 'Washington', targetAcres: 12000, budget: 1250000, status: 'Complete' },
+  { id: '4', name: 'Bakken Infill', client: 'Continental Resources', type: 'Lease Acquisition', state: 'ND', county: 'McKenzie', targetAcres: 3500, budget: 8000000, status: 'On Hold' },
+  { id: '5', name: 'Haynesville Expansion', client: 'Comstock Resources', type: 'ROW', state: 'LA', county: 'DeSoto', targetAcres: 150, budget: 850000, status: 'Active' },
+];
 
 export default function ProjectsPage() {
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [newProjectParams, setNewProjectParams] = useState({ projectName: '', clientName: '', projectType: 'MINERAL_ACQUISITION', targetNMA: 1000, budget: 1000000 });
-  const [projectList, setProjectList] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  useEffect(() => {
-    async function loadProjects() {
-      const projects = await getLandProjects();
-      setProjectList(projects);
-      if (projects.length > 0) {
-        setSelectedProject(projects[0].id);
-      }
-      setIsLoading(false);
-    }
-    loadProjects();
-  }, []);
-
-  const activeProject = projectList.find((p) => p.id === selectedProject) || projectList[0];
-
-  const handleCreateProject = async () => {
-    const newPrj = await createLandProject({
-      projectName: newProjectParams.projectName || 'New Project',
-      clientName: newProjectParams.clientName || 'Internal',
-      projectType: newProjectParams.projectType,
-      targetNetMineralAcres: newProjectParams.targetNMA,
-      budgetUsd: newProjectParams.budget,
-    });
-    
-    // Add dummy tracts property so it fits the type temporarily
-    const enhancedPrj = { ...newPrj, tracts: [] };
-    
-    setProjectList([enhancedPrj, ...projectList]);
-    setSelectedProject(newPrj.id);
-    setIsCreating(false);
-    setNewProjectParams({ projectName: '', clientName: '', projectType: 'MINERAL_ACQUISITION', targetNMA: 1000, budget: 1000000 });
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
+  const handleCreateProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsModalOpen(false);
+    showToast('Project created successfully');
+  };
+
+  const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.client.toLowerCase().includes(search.toLowerCase()));
+
   return (
-    <div className="space-y-6">
-      {/* Executive Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-900 text-white p-8">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <FolderKanban className="w-5 h-5 text-amber-400" /> Landman Projects & Client Accounts
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Manage acquisition projects, client budgets, tract packages, runsheets, and landman authority caps.
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">Land Projects</h1>
+          <p className="text-slate-400">Manage energy landman projects and objectives.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => setIsCreating(true)}>
-            Create New Project
-          </Button>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          <Plus size={20} />
+          Create Project
+        </button>
+      </div>
+
+      <div className="flex gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 text-slate-400" size={20} />
+          <input 
+            type="text" 
+            placeholder="Search projects or clients..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+          />
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+          <Filter size={20} />
+          Filters
+        </button>
+      </div>
+
+      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-800/50 border-b border-slate-700 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-4">Project Name</th>
+                <th className="px-6 py-4">Client</th>
+                <th className="px-6 py-4">Type</th>
+                <th className="px-6 py-4">Location</th>
+                <th className="px-6 py-4">Target Acres</th>
+                <th className="px-6 py-4">Budget</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+              {filteredProjects.map((project) => (
+                <tr key={project.id} className="hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => showToast(`Viewing ${project.name}`)}>
+                  <td className="px-6 py-4 font-medium text-emerald-400">{project.name}</td>
+                  <td className="px-6 py-4">{project.client}</td>
+                  <td className="px-6 py-4">
+                    <span className="bg-slate-700 px-2 py-1 rounded text-xs">{project.type}</span>
+                  </td>
+                  <td className="px-6 py-4">{project.county}, {project.state}</td>
+                  <td className="px-6 py-4">{project.targetAcres.toLocaleString()}</td>
+                  <td className="px-6 py-4">${project.budget.toLocaleString()}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      project.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400' :
+                      project.status === 'Complete' ? 'bg-blue-500/20 text-blue-400' :
+                      'bg-amber-500/20 text-amber-400'
+                    }`}>
+                      {project.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button className="text-slate-400 hover:text-white" onClick={(e) => { e.stopPropagation(); showToast('Menu opened'); }}>
+                      <MoreVertical size={20} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Projects Grid & Deep Drill-Down Detail Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left List */}
-        <div className="space-y-4">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Client Projects ({projectList?.length || 0})</h2>
-          {projectList?.map((p) => (
-            <Card
-              key={p.id}
-              onClick={() => setSelectedProject(p.id)}
-              className={`cursor-pointer transition-all ${
-                selectedProject === p.id
-                  ? 'border-amber-500/80 bg-slate-900 shadow-xl ring-1 ring-amber-500/30'
-                  : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-bold text-white text-sm">{p.projectName || 'Unnamed Project'}</h3>
-                  <p className="text-xs text-amber-400 mt-0.5">{p.clientName || 'Unknown Client'}</p>
-                </div>
-                {p.projectType && (
-                  <Badge variant={p.projectType === 'MINERAL_ACQUISITION' ? 'warning' : 'info'}>
-                    {String(p.projectType).replace(/_/g, ' ')}
-                  </Badge>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-800 text-[11px] font-mono text-slate-300">
-                <div>
-                  <span className="text-slate-500 uppercase text-[9px]">Location</span>
-                  <p className="font-semibold text-slate-200">{p.county || 'TBD'} Co, {p.state || 'TBD'}</p>
-                </div>
-                <div>
-                  <span className="text-slate-500 uppercase text-[9px]">Target NMA</span>
-                  <p className="font-semibold text-amber-300">{p.targetNetMineralAcres || 0} NMA</p>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Right Detail Panel */}
-        <div className="lg:col-span-2 space-y-4">
-          {activeProject ? (
-            <Card className="border-amber-900/40 bg-slate-900">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-white text-lg">{activeProject.projectName}</CardTitle>
-                  <CardDescription>Client: {activeProject.clientName} | Region: {activeProject.county} County, {activeProject.state}</CardDescription>
-                </div>
-                <Badge variant="success">STATUS: ACTIVE</Badge>
-              </CardHeader>
-  
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-slate-500 text-[10px] uppercase font-semibold">Total Budget</span>
-                  <p className="text-base font-bold text-white mt-1">${(activeProject.budgetUsd || 0).toLocaleString()}</p>
-                </div>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-slate-500 text-[10px] uppercase font-semibold">Capital Deployed</span>
-                  <p className="text-base font-bold text-emerald-400 mt-1">${(activeProject.spentUsd || 0).toLocaleString()}</p>
-                </div>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-slate-500 text-[10px] uppercase font-semibold">Target NMA</span>
-                  <p className="text-base font-bold text-amber-300 mt-1">{activeProject.targetNetMineralAcres || 0} NMA</p>
-                </div>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-slate-500 text-[10px] uppercase font-semibold">Tract Package</span>
-                  <p className="text-base font-bold text-purple-300 mt-1">{activeProject.tracts?.length || activeProject.tractsCount || 0} Tracts</p>
-                </div>
-              </div>
-  
-              <div className="mt-4">
-                <EvidenceBox
-                  source="Project Client Engagement Authorization Agreement"
-                  retrievedAt={new Date().toISOString()}
-                  confidenceScore={98}
-                  verificationState="ATTORNEY_VERIFIED"
-                  assumptions={['Authority cap max $4,500/NMA bonus', 'Royalty cap max 25% (1/4th)']}
-                >
-                  <p className="text-xs text-slate-300">
-                    Client Mandate Provenance: Pioneer Natural Resources has authorized Pearson Developments to acquire up to 1,250 NMA in the Wolfcamp formation with a maximum bonus authority of $4,500/NMA.
-                  </p>
-                </EvidenceBox>
-              </div>
-            </Card>
-          ) : (
-            <div className="flex items-center justify-center h-full min-h-[400px] border border-dashed border-slate-800 rounded-xl bg-slate-900/30">
-               <p className="text-slate-500 flex flex-col items-center gap-2">
-                 <Briefcase className="w-8 h-8 opacity-50" />
-                 <span>No project selected. Create one to get started.</span>
-               </p>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-xl border border-slate-700 w-full max-w-2xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Create New Project</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X size={24} />
+              </button>
             </div>
-          )}
-        </div>
-      </div>
-
-      {isCreating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <Card className="w-full max-w-lg bg-slate-900 border-slate-700 shadow-2xl">
-            <CardHeader className="border-b border-slate-800 pb-4">
-              <CardTitle className="text-xl text-white">Create New Project</CardTitle>
-              <CardDescription>Setup a new client mandate or acquisition project.</CardDescription>
-            </CardHeader>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="text-xs text-slate-400 font-bold uppercase block mb-1">Project Name</label>
-                <input 
-                  type="text" 
-                  value={newProjectParams.projectName}
-                  onChange={(e) => setNewProjectParams({...newProjectParams, projectName: e.target.value})}
-                  placeholder="e.g. Permian Basin Prospect"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 font-bold uppercase block mb-1">Client / Owner Name</label>
-                <input 
-                  type="text" 
-                  value={newProjectParams.clientName}
-                  onChange={(e) => setNewProjectParams({...newProjectParams, clientName: e.target.value})}
-                  placeholder="e.g. Pioneer Natural Resources"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 font-bold uppercase block mb-1">Project Type</label>
-                <select 
-                  value={newProjectParams.projectType}
-                  onChange={(e) => setNewProjectParams({...newProjectParams, projectType: e.target.value})}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-sm"
-                >
-                  <option value="MINERAL_ACQUISITION">Mineral Acquisition</option>
-                  <option value="SOLAR_DEVELOPMENT">Solar Development</option>
-                  <option value="RIGHT_OF_WAY">Right of Way (ROW)</option>
-                  <option value="WIND_DEVELOPMENT">Wind Development</option>
-                </select>
+            <form onSubmit={handleCreateProject} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Project Name</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Client</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none" required />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-slate-400 font-bold uppercase block mb-1">Target NMA</label>
-                  <input 
-                    type="number" 
-                    value={newProjectParams.targetNMA}
-                    onChange={(e) => setNewProjectParams({...newProjectParams, targetNMA: Number(e.target.value)})}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-sm"
-                  />
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Project Type</label>
+                  <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none">
+                    <option>Lease Acquisition</option>
+                    <option>MOR</option>
+                    <option>SOR</option>
+                    <option>ROW</option>
+                  </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 font-bold uppercase block mb-1">Total Budget ($)</label>
-                  <input 
-                    type="number" 
-                    value={newProjectParams.budget}
-                    onChange={(e) => setNewProjectParams({...newProjectParams, budget: Number(e.target.value)})}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-sm"
-                  />
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Status</label>
+                  <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none">
+                    <option>Active</option>
+                    <option>On Hold</option>
+                    <option>Complete</option>
+                  </select>
                 </div>
               </div>
-            </div>
-            <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end gap-3 rounded-b-xl">
-              <Button variant="outline" onClick={() => setIsCreating(false)}>Cancel</Button>
-              <Button variant="primary" onClick={handleCreateProject} className="bg-amber-600 hover:bg-amber-700 text-white border-amber-500">
-                Launch Project
-              </Button>
-            </div>
-          </Card>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">State</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">County</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Target Acres</label>
+                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Budget ($)</label>
+                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-emerald-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Save Project</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+          toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+        } text-white animate-fade-in-up`}>
+          {toast.type === 'success' ? <CheckCircle size={20} /> : <X size={20} />}
+          {toast.message}
         </div>
       )}
     </div>

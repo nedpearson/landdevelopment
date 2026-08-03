@@ -1,83 +1,207 @@
 'use client';
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, Badge, Button, EvidenceBox } from '@land-intelligence/ui';
-import { Zap, Plus, MapPin, DollarSign, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Search, Filter, X, CheckCircle, Route } from 'lucide-react';
+
+interface ROWSegment {
+  id: string;
+  name: string;
+  type: string;
+  length: number;
+  width: number;
+  permAcres: number;
+  tempAcres: number;
+  offer: number;
+  signed: boolean;
+  risk: 'Low' | 'Medium' | 'High';
+}
+
+const mockROW: ROWSegment[] = [
+  { id: '1', name: 'Segment 1 - Smith', type: 'Pipeline', length: 120, width: 50, permAcres: 2.27, tempAcres: 1.13, offer: 25000, signed: true, risk: 'Low' },
+  { id: '2', name: 'Segment 2 - Jones', type: 'Pipeline', length: 300, width: 50, permAcres: 5.68, tempAcres: 2.84, offer: 65000, signed: false, risk: 'Medium' },
+  { id: '3', name: 'Access Rd A', type: 'Road', length: 85, width: 30, permAcres: 0.96, tempAcres: 0.00, offer: 15000, signed: true, risk: 'Low' },
+  { id: '4', name: 'Segment 3 - Penn', type: 'Pipeline', length: 410, width: 50, permAcres: 7.76, tempAcres: 3.88, offer: 85000, signed: false, risk: 'High' },
+  { id: '5', name: 'Substation Pad', type: 'Facility', length: 0, width: 0, permAcres: 5.00, tempAcres: 2.00, offer: 150000, signed: false, risk: 'Low' },
+];
 
 export default function ROWPage() {
-  const segments = [
-    {
-      id: 'row-1',
-      segmentName: 'Delaware Gas Gathering Segment A-1',
-      operator: 'Enterprise Products Partners',
-      widthFeet: 50,
-      lengthRods: 320,
-      pricePerRodUsd: 150.0,
-      totalDamageUsd: 48000.0,
-      cropDamageUsd: 5000.0,
-      status: 'OPTION_EXECUTED',
-      county: 'Loving',
-      state: 'TX',
-    },
-  ];
+  const [segments, setSegments] = useState<ROWSegment[]>(mockROW);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const filteredSegments = segments.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.type.toLowerCase().includes(search.toLowerCase()));
+
+  const toggleSigned = (id: string) => {
+    setSegments(segments.map(s => s.id === id ? { ...s, signed: !s.signed } : s));
+    showToast('Status updated');
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-900 text-white p-8">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-400" /> Right-of-Way (ROW) Pipeline & Utility Corridors
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+            <Route className="text-cyan-500" />
+            Right of Way
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Pipeline, electric transmission, fiber, and utility easement negotiations, rod damage pricing, and stationing.
-          </p>
+          <p className="text-slate-400">Manage pipeline easements, roads, and surface facilities.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm" icon={<Plus className="w-4 h-4" />}>
-            Add ROW Segment
-          </Button>
-        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          <Plus size={20} />
+          Add Segment
+        </button>
       </div>
 
-      {/* ROW Table */}
-      <Card className="border-slate-800 bg-slate-900">
-        <CardHeader>
-          <CardTitle>Active Right-of-Way Segments</CardTitle>
-          <CardDescription>Segment stationing, width, rods, damage rate per rod, and option status</CardDescription>
-        </CardHeader>
+      <div className="flex gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 text-slate-400" size={20} />
+          <input 
+            type="text" 
+            placeholder="Search segments..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-cyan-500 transition-colors"
+          />
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+          <Filter size={20} />
+          Filters
+        </button>
+      </div>
 
+      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 border-b border-slate-800 uppercase text-[10px] text-slate-400">
-              <tr>
-                <th className="p-3">Segment Name</th>
-                <th className="p-3">Operator</th>
-                <th className="p-3">Width / Rods</th>
-                <th className="p-3">Rate / Rod</th>
-                <th className="p-3">Easement Total</th>
-                <th className="p-3">Crop Damage</th>
-                <th className="p-3">Status</th>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-800/50 border-b border-slate-700 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th className="px-6 py-4">Segment Name</th>
+                <th className="px-6 py-4">Type</th>
+                <th className="px-6 py-4 text-right">Length (Rods)</th>
+                <th className="px-6 py-4 text-right">Width (Ft)</th>
+                <th className="px-6 py-4 text-right">Perm / Temp Acres</th>
+                <th className="px-6 py-4 text-right">Offer Amount</th>
+                <th className="px-6 py-4 text-center">Signed</th>
+                <th className="px-6 py-4">Condemnation Risk</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
-              {segments.map((s) => (
-                <tr key={s.id} className="hover:bg-slate-800/40">
-                  <td className="p-3 font-bold text-amber-400">{s.segmentName}</td>
-                  <td className="p-3 text-slate-200">{s.operator}</td>
-                  <td className="p-3 text-white">{s.widthFeet} ft ({s.lengthRods} rods)</td>
-                  <td className="p-3 text-emerald-400 font-bold">${s.pricePerRodUsd.toFixed(2)} / rod</td>
-                  <td className="p-3 text-emerald-400 font-bold">${s.totalDamageUsd.toLocaleString()}</td>
-                  <td className="p-3 text-amber-300">${s.cropDamageUsd.toLocaleString()}</td>
-                  <td className="p-3">
-                    <Badge variant="success" className="font-mono">{s.status}</Badge>
+            <tbody className="divide-y divide-slate-700">
+              {filteredSegments.map((seg) => (
+                <tr key={seg.id} className="hover:bg-slate-700/50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-cyan-400">{seg.name}</td>
+                  <td className="px-6 py-4 text-slate-300">{seg.type}</td>
+                  <td className="px-6 py-4 text-right">{seg.length > 0 ? seg.length : '-'}</td>
+                  <td className="px-6 py-4 text-right">{seg.width > 0 ? seg.width : '-'}</td>
+                  <td className="px-6 py-4 text-right">{seg.permAcres} / {seg.tempAcres}</td>
+                  <td className="px-6 py-4 text-right">${seg.offer.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-center">
+                    <input 
+                      type="checkbox" 
+                      checked={seg.signed} 
+                      onChange={() => toggleSigned(seg.id)}
+                      className="w-4 h-4 rounded bg-slate-900 border-slate-600 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-800"
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      seg.risk === 'Low' ? 'bg-emerald-500/20 text-emerald-400' :
+                      seg.risk === 'Medium' ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      {seg.risk}
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-xl border border-slate-700 w-full max-w-2xl p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Add ROW Segment</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Segment added'); }} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Segment Name</label>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Infrastructure Type</label>
+                  <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none">
+                    <option>Pipeline</option>
+                    <option>Road</option>
+                    <option>Facility</option>
+                    <option>Powerline</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Length (Rods)</label>
+                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Easement Width (Ft)</label>
+                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Permanent Acres</label>
+                  <input type="number" step="0.01" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Temporary Workspace Acres</label>
+                  <input type="number" step="0.01" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none" required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Offer Amount ($)</label>
+                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Condemnation Risk</label>
+                  <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-cyan-500 focus:outline-none">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                  </select>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">Save Segment</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+          toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+        } text-white animate-fade-in-up`}>
+          {toast.type === 'success' ? <CheckCircle size={20} /> : <X size={20} />}
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
