@@ -1,5 +1,6 @@
 'use client';
 
+import { submitGenericForm } from '@/actions/genericActions';
 import React, { useState } from 'react';
 import { Plus, Search, Filter, X, CheckCircle, Target } from 'lucide-react';
 
@@ -27,6 +28,14 @@ export default function AcquisitionPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const result = await submitGenericForm(Object.fromEntries(formData.entries()));
+    setIsModalOpen(false);
+    showToast(result.success ? 'Saved successfully!' : 'Error saving');
+  };
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -121,7 +130,7 @@ export default function AcquisitionPage() {
                 <X size={24} />
               </button>
             </div>
-            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success'); }} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Landowner Name</label>

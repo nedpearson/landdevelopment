@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Search, Download, CheckCircle, X } from 'lucide-react';
+import { createBuyer } from '@/actions/buyerActions';
 
 interface Buyer {
   id: string;
@@ -27,13 +28,30 @@ export default function BuyersPage() {
   const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const showToast = (message: string) => {
-    setToast({ message, type: 'success' });
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
   const handleExport = () => {
-    showToast('Exporting CSV...');
+    showToast('Exporting CSV...', 'success');
+  };
+
+  const handleAddBuyer = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const result = await createBuyer({
+      name: (formData.get('name') as string) || 'New Buyer',
+      email: (formData.get('email') as string) || '',
+      phone: formData.get('phone') as string,
+      criteria: {
+        budgetRange: formData.get('budgetRange'),
+        preferredArea: formData.get('preferredArea'),
+        verified: formData.get('verified') === 'on'
+      }
+    });
+    setIsModalOpen(false);
+    showToast(result.success ? 'Buyer Profile Created!' : 'Error creating buyer', result.success ? 'success' : 'error');
   };
 
   return (
@@ -104,25 +122,25 @@ export default function BuyersPage() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-lg border border-slate-700">
             <h2 className="text-xl font-bold mb-4">Add VIP Buyer</h2>
-            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Buyer Profile Created!'); }} className="space-y-4">
+            <form onSubmit={handleAddBuyer} className="space-y-4">
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Company / Name</label>
-                <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
+                <input name="name" required type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Email</label>
-                  <input required type="email" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
+                  <input name="email" required type="email" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Phone</label>
-                  <input type="tel" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
+                  <input name="phone" type="tel" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Budget Range</label>
-                  <select className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none">
+                  <select name="budgetRange" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none">
                     <option>$0 - $10k</option>
                     <option>$10k - $50k</option>
                     <option>$50k - $100k</option>
@@ -131,11 +149,11 @@ export default function BuyersPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Preferred State/County</label>
-                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
+                  <input name="preferredArea" type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-lime-500 outline-none" />
                 </div>
               </div>
               <div className="flex items-center mt-4">
-                <input type="checkbox" id="verified" className="mr-2 accent-lime-500" />
+                <input name="verified" type="checkbox" id="verified" className="mr-2 accent-lime-500" />
                 <label htmlFor="verified" className="text-sm text-slate-300">Mark as Verified Cash Buyer</label>
               </div>
               <div className="flex justify-end space-x-3 mt-6">

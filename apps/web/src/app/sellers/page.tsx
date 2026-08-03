@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Search, X, User } from 'lucide-react';
+import { createSeller } from '@/actions/sellerActions';
 
 interface Seller {
   id: string;
@@ -25,12 +26,26 @@ const mockSellers: Seller[] = [
 export default function SellersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   const showToast = (message: string) => {
-    setToast({ message, type: 'success' });
+    setToast(message);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleAddSeller = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const result = await createSeller({
+      name: (formData.get('name') as string) || 'New Seller',
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      askingPrice: Number(formData.get('price')) || 0,
+      motivationLevel: formData.get('motivation') as string || 'LOW'
+    });
+    setIsModalOpen(false);
+    showToast(result.success ? 'Seller Added!' : 'Error adding seller');
   };
 
   const getMotivationColor = (level: string) => {
@@ -112,29 +127,38 @@ export default function SellersPage() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md border border-slate-700">
             <h2 className="text-xl font-bold mb-4">Add New Seller</h2>
-            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Seller Added!'); }} className="space-y-4">
+            <form onSubmit={handleAddSeller} className="space-y-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Full Name</label>
-                <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none" />
+                <label className="block text-sm text-slate-400 mb-1">Name</label>
+                <input type="text" name="name" required className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Phone</label>
-                  <input required type="tel" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none" />
+                  <input type="text" name="phone" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Email</label>
-                  <input type="email" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none" />
+                  <input type="email" name="email" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Motivation Level</label>
-                <select className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-sky-500 outline-none">
-                  <option>Low</option>
-                  <option>Med</option>
-                  <option>High</option>
-                  <option>Urgent</option>
-                </select>
+                <label className="block text-sm text-slate-400 mb-1">Target Property / APN</label>
+                <input type="text" name="property" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Asking Price ($)</label>
+                  <input type="number" name="price" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Motivation Level</label>
+                  <select name="motivation" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white outline-none">
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
+                  </select>
+                </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">Cancel</button>
@@ -191,8 +215,8 @@ export default function SellersPage() {
       )}
 
       {toast && (
-        <div className="fixed bottom-4 right-4 px-4 py-2 bg-sky-600 rounded shadow-lg">
-          {toast.message}
+        <div className={`fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg bg-sky-600`}>
+          {toast}
         </div>
       )}
     </div>

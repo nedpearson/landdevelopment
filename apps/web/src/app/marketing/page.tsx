@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Copy, Send, Mail, MessageSquare, Target, Megaphone } from 'lucide-react';
+import { createCampaign, dispatchMailer } from '@/actions/marketingActions';
 
 interface Campaign {
   id: string;
@@ -36,12 +37,35 @@ export default function MarketingPage() {
     showToast('Copied to clipboard!');
   };
 
-  const handleDispatch = () => {
+  const handleDispatch = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    const result = await dispatchMailer();
+    setIsLoading(false);
+    if (result.success) {
       showToast('Mailer Batch Dispatched!');
-    }, 1500);
+    } else {
+      showToast(result.error || 'Failed to dispatch mailer', 'error');
+    }
+  };
+
+  const handleLaunchCampaign = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name') as string,
+      type: formData.get('type') as string,
+      audience: formData.get('audience') as string,
+      budget: formData.get('budget') as string,
+      subjectLine: formData.get('subjectLine') as string,
+      bodyPreview: formData.get('bodyPreview') as string,
+    };
+    const result = await createCampaign(data);
+    setIsModalOpen(false);
+    if (result.success) {
+      showToast('Campaign Created!');
+    } else {
+      showToast(result.error || 'Failed to create campaign', 'error');
+    }
   };
 
   return (
@@ -163,15 +187,15 @@ export default function MarketingPage() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
           <div className="bg-slate-800 rounded-lg p-6 w-full max-w-lg border border-slate-700">
             <h2 className="text-xl font-bold mb-4">Launch New Campaign</h2>
-            <form onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); showToast('Campaign Created!'); }} className="space-y-4">
+            <form onSubmit={handleLaunchCampaign} className="space-y-4">
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Campaign Name</label>
-                <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
+                <input required type="text" name="name" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Type</label>
-                  <select className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none">
+                  <select name="type" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none">
                     <option>Email Blast</option>
                     <option>SMS</option>
                     <option>Direct Mail</option>
@@ -180,7 +204,7 @@ export default function MarketingPage() {
                 </div>
                 <div>
                   <label className="block text-sm text-slate-400 mb-1">Target Audience</label>
-                  <select className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none">
+                  <select name="audience" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none">
                     <option>Buyer List</option>
                     <option>Seller Acquisition</option>
                   </select>
@@ -188,15 +212,15 @@ export default function MarketingPage() {
               </div>
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Budget ($)</label>
-                <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
+                <input type="number" name="budget" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
               </div>
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Subject Line</label>
-                <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
+                <input type="text" name="subjectLine" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
               </div>
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Body Preview</label>
-                <textarea rows={3} className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
+                <textarea name="bodyPreview" rows={3} className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:border-emerald-500 outline-none" />
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">Cancel</button>

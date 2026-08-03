@@ -1,5 +1,6 @@
 'use client';
 
+import { submitGenericForm } from '@/actions/genericActions';
 import React, { useState } from 'react';
 import { FileBarChart2, Plus, Download, Search, X, Check, ArrowUpDown } from 'lucide-react';
 
@@ -46,6 +47,14 @@ export default function CompsPage() {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string } | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const result = await submitGenericForm(Object.fromEntries(formData.entries()));
+    setIsModalOpen(false);
+    showToast(result.success ? 'Saved successfully!' : 'Error saving');
+  };
 
   const showToast = (message: string) => {
     setToast({ message });
@@ -184,7 +193,7 @@ export default function CompsPage() {
             </div>
             
             <div className="p-5">
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Comp added successfully'); setIsModalOpen(false); }}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="flex gap-4 mb-4">
                   <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
                     <input type="radio" name="compType" value="sale" defaultChecked className="accent-sky-500" /> Sale

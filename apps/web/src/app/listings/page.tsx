@@ -1,5 +1,6 @@
 'use client';
 
+import { submitGenericForm } from '@/actions/genericActions';
 import React, { useState } from 'react';
 import { Search, Plus, Filter, Grid, List, Building2, MapPin, DollarSign, Activity, Maximize2, X, AlertCircle, Copy, Check } from 'lucide-react';
 
@@ -34,6 +35,14 @@ export default function ListingsPage() {
   const [sortBy, setSortBy] = useState<'price' | 'sf' | 'date'>('date');
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const result = await submitGenericForm(Object.fromEntries(formData.entries()));
+    setIsModalOpen(false);
+    showToast(result.success ? 'Saved successfully!' : 'Error saving');
+  };
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -233,7 +242,7 @@ export default function ListingsPage() {
             </div>
             
             <div className="p-5 overflow-y-auto custom-scrollbar flex-1">
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Listing added successfully'); setIsModalOpen(false); }}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Property Address</label>
                   <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500" placeholder="123 Main St" />

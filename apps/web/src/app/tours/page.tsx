@@ -1,5 +1,6 @@
 'use client';
 
+import { submitGenericForm } from '@/actions/genericActions';
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin, User, Check, X, Plus, Users } from 'lucide-react';
 
@@ -28,6 +29,14 @@ export default function ToursPage() {
   const [tours, setTours] = useState<Tour[]>(MOCK_TOURS);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string } | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const result = await submitGenericForm(Object.fromEntries(formData.entries()));
+    setIsModalOpen(false);
+    showToast(result.success ? 'Saved successfully!' : 'Error saving');
+  };
 
   const showToast = (message: string) => {
     setToast({ message });
@@ -137,7 +146,7 @@ export default function ToursPage() {
             </div>
             
             <div className="p-5">
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); showToast('Tour scheduling persistence coming soon'); setIsModalOpen(false); }}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Property Address</label>
                   <input required type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-500" placeholder="123 Main St" />
