@@ -81,18 +81,18 @@ export function UniversalSearch() {
         className="fixed inset-0 z-[200] bg-slate-950/60 backdrop-blur-sm"
         onClick={() => setIsOpen(false)}
       />
-      <div className="fixed inset-x-0 top-[10%] mx-auto z-[201] w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-xl shadow-2xl flex flex-col overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800">
-          <Search className="w-5 h-5 text-slate-500" />
+      <div className="fixed inset-x-3 sm:inset-x-0 top-[6%] sm:top-[12%] sm:mx-auto z-[201] max-w-2xl bg-[#090909]/95 backdrop-blur-2xl border border-white/[0.1] rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[82vh]">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.08] bg-[#0c0c0c]">
+          <Search className="w-5 h-5 text-slate-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search as ${activeWorkspace.label} (parcels, owners, leases, APNs)...`}
-            className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-slate-500"
+            placeholder={`Search parcels, APNs, owners...`}
+            className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder:text-slate-500"
           />
-          <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white">
+          <button onClick={() => setIsOpen(false)} className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
