@@ -19,9 +19,15 @@ import {
   AlertTriangle,
   Clock,
   Compass,
-  MapPin
+  MapPin,
+  Mail,
+  Smartphone,
+  Send,
+  Sparkles,
+  X
 } from 'lucide-react';
 import { updatePropertyStage } from '@/actions/propertyActions';
+import { dispatchOfferEmail, dispatchOfferSms } from '@/actions/expansionActions';
 import { SourceProvenanceBadge, SourceProvenanceModal } from '@/components/common/SourceProvenance';
 
 export function PropertyDetail({ property }: { property: any }) {
@@ -58,6 +64,75 @@ export function PropertyDetail({ property }: { property: any }) {
   const estHoldingCosts = 8000;
   const calculatedMao = Math.max(0, baseOffer - estDevCosts - estHoldingCosts);
   const targetProfit = emv - calculatedMao - estDevCosts - estHoldingCosts;
+
+  // LOI Offer Dispatch Expansion State
+  const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
+  const [dispatchOfferAmount, setDispatchOfferAmount] = useState<number>(property.askingPrice || calculatedMao || 50000);
+  const [dispatchRecipientEmail, setDispatchRecipientEmail] = useState(property.ownerEmail || 'seller@landholdings.com');
+  const [dispatchRecipientPhone, setDispatchRecipientPhone] = useState(property.ownerPhone || '+15552345678');
+  const [dispatchSellerName, setDispatchSellerName] = useState(property.ownerName || 'Property Owner');
+  const [isDispatching, setIsDispatching] = useState(false);
+  const [dispatchFeedback, setDispatchFeedback] = useState<{ type: 'email' | 'sms'; success: boolean; message: string; id?: string } | null>(null);
+
+  const handleSendEmailOffer = async () => {
+    setIsDispatching(true);
+    setDispatchFeedback(null);
+    try {
+      const res = await dispatchOfferEmail(property.id, Number(dispatchOfferAmount), dispatchRecipientEmail, dispatchSellerName);
+      if (res.success && res.data) {
+        setDispatchFeedback({
+          type: 'email',
+          success: true,
+          message: `Attorney-grade LOI dispatched via Resend API! ID: ${res.data.messageId}`,
+          id: res.data.messageId
+        });
+        showToast('Offer LOI dispatched via Email', 'success');
+        router.refresh();
+      } else {
+        const errorMsg = (res as any).error || 'Failed to dispatch email offer';
+        setDispatchFeedback({
+          type: 'email',
+          success: false,
+          message: errorMsg
+        });
+        showToast(errorMsg, 'error');
+      }
+    } catch (err: any) {
+      setDispatchFeedback({ type: 'email', success: false, message: err.message });
+    } finally {
+      setIsDispatching(false);
+    }
+  };
+
+  const handleSendSmsOffer = async () => {
+    setIsDispatching(true);
+    setDispatchFeedback(null);
+    try {
+      const res = await dispatchOfferSms(property.id, Number(dispatchOfferAmount), dispatchRecipientPhone, dispatchSellerName);
+      if (res.success && res.data) {
+        setDispatchFeedback({
+          type: 'sms',
+          success: true,
+          message: `TCPA-compliant SMS dispatched via Twilio! SID: ${res.data.messageSid}`,
+          id: res.data.messageSid
+        });
+        showToast('Offer LOI dispatched via SMS', 'success');
+        router.refresh();
+      } else {
+        const errorMsg = (res as any).error || 'Failed to dispatch SMS offer';
+        setDispatchFeedback({
+          type: 'sms',
+          success: false,
+          message: errorMsg
+        });
+        showToast(errorMsg, 'error');
+      }
+    } catch (err: any) {
+      setDispatchFeedback({ type: 'sms', success: false, message: err.message });
+    } finally {
+      setIsDispatching(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200 font-sans">
@@ -566,12 +641,20 @@ export function PropertyDetail({ property }: { property: any }) {
               <h2 className="font-bold text-white text-sm flex items-center gap-2">
                 <FileText className="w-4 h-4 text-emerald-400" /> Purchase Offers & Contracts
               </h2>
-              <button 
-                onClick={() => router.push('/offers')}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors"
-              >
-                Draft Purchase Offer
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsDispatchModalOpen(true)}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  <Send className="w-3.5 h-3.5" /> Dispatch LOI (Email / SMS)
+                </button>
+                <button 
+                  onClick={() => router.push('/offers')}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors"
+                >
+                  Draft Purchase Offer
+                </button>
+              </div>
             </div>
             
             {(!property.offers || property.offers.length === 0) ? (
@@ -647,6 +730,139 @@ export function PropertyDetail({ property }: { property: any }) {
           </div>
         )}
       </div>
+
+      {/* Dispatch LOI Offer Modal */}
+      {isDispatchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 relative">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                  <Send className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Dispatch Letter of Intent (LOI)</h3>
+                  <p className="text-xs text-slate-400">Direct-to-Seller Automated Purchase Offer Delivery</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => { setIsDispatchModalOpen(false); setDispatchFeedback(null); }}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 py-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Target Property</label>
+                <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono">
+                  {property.apn} • {property.acreage?.toFixed(2)} AC • {property.county}, {property.state}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Seller / Entity Name</label>
+                  <input 
+                    type="text"
+                    value={dispatchSellerName}
+                    onChange={(e) => setDispatchSellerName(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                    placeholder="e.g. John Doe"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Offer Purchase Price ($ USD)</label>
+                  <input 
+                    type="number"
+                    value={dispatchOfferAmount}
+                    onChange={(e) => setDispatchOfferAmount(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs font-bold text-emerald-400 focus:outline-none focus:border-emerald-500"
+                    placeholder="e.g. 50000"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-indigo-400" /> Attorney-Grade HTML Email
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono">Resend API v1</span>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="email"
+                    value={dispatchRecipientEmail}
+                    onChange={(e) => setDispatchRecipientEmail(e.target.value)}
+                    className="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                    placeholder="seller@domain.com"
+                  />
+                  <button
+                    onClick={handleSendEmailOffer}
+                    disabled={isDispatching || !dispatchRecipientEmail}
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shrink-0"
+                  >
+                    <Send className="w-3 h-3" /> Send LOI
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5 text-emerald-400" /> TCPA-Compliant SMS Notice
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono">Twilio REST API</span>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="tel"
+                    value={dispatchRecipientPhone}
+                    onChange={(e) => setDispatchRecipientPhone(e.target.value)}
+                    className="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+                    placeholder="+15551234567"
+                  />
+                  <button
+                    onClick={handleSendSmsOffer}
+                    disabled={isDispatching || !dispatchRecipientPhone}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shrink-0"
+                  >
+                    <Smartphone className="w-3 h-3" /> Send SMS
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-500">Includes mandatory opt-out compliance (Reply STOP to cancel).</p>
+              </div>
+
+              {dispatchFeedback && (
+                <div className={`p-3 rounded-xl border text-xs font-medium ${
+                  dispatchFeedback.success 
+                    ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-200' 
+                    : 'bg-red-950/50 border-red-500/40 text-red-200'
+                }`}>
+                  <div className="flex items-center gap-1.5">
+                    {dispatchFeedback.success ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> : <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />}
+                    <span>{dispatchFeedback.message}</span>
+                  </div>
+                  {dispatchFeedback.id && (
+                    <div className="text-[10px] font-mono text-slate-400 mt-1">Ref ID: {dispatchFeedback.id}</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-800">
+              <button
+                onClick={() => { setIsDispatchModalOpen(false); setDispatchFeedback(null); }}
+                className="px-4 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Provenance Inspection Modal */}
       <SourceProvenanceModal

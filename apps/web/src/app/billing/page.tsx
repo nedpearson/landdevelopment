@@ -1,8 +1,9 @@
 'use client';
 
 import { submitGenericForm } from '@/actions/genericActions';
+import { createSubscriptionCheckout } from '@/actions/expansionActions';
 import React, { useState } from 'react';
-import { Plus, Receipt, Search, FileText, CheckCircle, X, Filter } from 'lucide-react';
+import { Plus, Receipt, Search, FileText, CheckCircle, X, Filter, CreditCard, Sparkles, Check, Shield } from 'lucide-react';
 
 interface BillingEntry {
   id: string;
@@ -29,8 +30,30 @@ export default function BillingPage() {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<'STARTER' | 'PRO' | 'ENTERPRISE'>('PRO');
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubscribe = async (tierId: 'STARTER' | 'PRO' | 'ENTERPRISE') => {
+    setIsSubscribing(true);
+    try {
+      const res = await createSubscriptionCheckout(tierId);
+      if (res.success && res.data) {
+        if (res.data.checkoutUrl.startsWith('http')) {
+          window.location.href = res.data.checkoutUrl;
+        } else {
+          showToast(`Subscribed to ${res.data.tierName}! Session active.`);
+        }
+      } else {
+        showToast((res as any).error || 'Checkout initiation failed', 'error');
+      }
+    } catch {
+      showToast('Error connecting to billing service', 'error');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const result = await submitGenericForm(Object.fromEntries(formData.entries()));
@@ -57,32 +80,139 @@ export default function BillingPage() {
   const grandTotal = totals.dayRateTotal + totals.mileageTotal + totals.perDiemTotal;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
-            <Receipt className="text-fuchsia-500" />
-            Landman Billing
-          </h1>
-          <p className="text-slate-400">Track hours, expenses, and generate client invoices.</p>
+    <div className="min-h-screen bg-slate-900 text-white p-6 md:p-8 space-y-10">
+      {/* Toast Alert */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} animate-in fade-in`}>
+          {toast.message}
         </div>
-        <div className="flex gap-3">
-          <button 
-            onClick={() => setIsInvoiceModalOpen(true)}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            <FileText size={20} />
-            Generate Invoice
-          </button>
-          <button 
-            onClick={() => setIsEntryModalOpen(true)}
-            className="flex items-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            <Plus size={20} />
-            Add Entry
-          </button>
+      )}
+
+      {/* Subscription Tiering Section */}
+      <section className="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-6">
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-2">
+              <CreditCard className="w-3.5 h-3.5" /> STRIPE BILLING & SUBSCRIPTIONS
+            </div>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Commercial Subscription Plans</h2>
+            <p className="text-slate-400 text-xs mt-1">Metered GIS parcel exports, automated title runsheets, and enterprise underwriting.</p>
+          </div>
+          <div className="flex items-center gap-2 bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300">
+            <Shield className="w-4 h-4 text-emerald-400" /> 256-Bit Encrypted Payments via Stripe
+          </div>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Starter Plan */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-6 flex flex-col justify-between hover:border-slate-700 transition-all">
+            <div>
+              <h3 className="font-bold text-white text-base">Land Investor Starter</h3>
+              <p className="text-xs text-slate-400 mt-1">Essential toolkit for independent landmen & investors.</p>
+              <div className="mt-4 mb-6">
+                <span className="text-3xl font-extrabold text-white">$99</span>
+                <span className="text-slate-400 text-xs"> / month</span>
+              </div>
+              <ul className="space-y-2.5 text-xs text-slate-300 mb-6">
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Access to all 81 workspace modules</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> 250 GIS parcel exports / month</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Automated MAO underwriting</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> AI Co-Pilot (GPT-4o engine)</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => handleSubscribe('STARTER')}
+              disabled={isSubscribing}
+              className="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-all"
+            >
+              Select Starter
+            </button>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="bg-slate-900/90 border-2 border-emerald-500 rounded-xl p-6 flex flex-col justify-between shadow-xl shadow-emerald-500/5 relative">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 font-extrabold text-[10px] px-3 py-0.5 rounded-full uppercase tracking-wider">
+              Most Popular
+            </span>
+            <div>
+              <h3 className="font-bold text-white text-base">Commercial Broker Pro</h3>
+              <p className="text-xs text-slate-400 mt-1">High-volume parcel intelligence and verified comps.</p>
+              <div className="mt-4 mb-6">
+                <span className="text-3xl font-extrabold text-white">$299</span>
+                <span className="text-slate-400 text-xs"> / month</span>
+              </div>
+              <ul className="space-y-2.5 text-xs text-slate-300 mb-6">
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Everything in Starter</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> 1,500 GIS parcel exports / month</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> County Assessor certified roll drilldowns</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Deed book & page comp verification</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Outbound LOI Email & SMS dispatch</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => handleSubscribe('PRO')}
+              disabled={isSubscribing}
+              className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition-all"
+            >
+              Upgrade to Pro (Active Plan)
+            </button>
+          </div>
+
+          {/* Enterprise Plan */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-6 flex flex-col justify-between hover:border-slate-700 transition-all">
+            <div>
+              <h3 className="font-bold text-white text-base">Developer & Energy Enterprise</h3>
+              <p className="text-xs text-slate-400 mt-1">Full-scale title chain runsheets & infrastructure GIS.</p>
+              <div className="mt-4 mb-6">
+                <span className="text-3xl font-extrabold text-white">$899</span>
+                <span className="text-slate-400 text-xs"> / month</span>
+              </div>
+              <ul className="space-y-2.5 text-xs text-slate-300 mb-6">
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Everything in Pro</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> 10,000 GIS parcel exports / month</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Automated County GIS REST Scrapers</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Surface & mineral run sheet automation</li>
+                <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Substation & 345kV transmission proximity</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => handleSubscribe('ENTERPRISE')}
+              disabled={isSubscribing}
+              className="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-all"
+            >
+              Contact Enterprise
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Landman Hours & Invoicing Table */}
+      <section className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Receipt className="text-fuchsia-500" />
+              Landman Billing & Invoicing
+            </h1>
+            <p className="text-slate-400 text-xs mt-0.5">Track field hours, travel mileage, per diem, and generate client invoices.</p>
+          </div>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => setIsInvoiceModalOpen(true)}
+              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              <FileText size={20} />
+              Generate Invoice
+            </button>
+            <button 
+              onClick={() => setIsEntryModalOpen(true)}
+              className="flex items-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              <Plus size={20} />
+              Add Entry
+            </button>
+          </div>
+        </div>
 
       <div className="flex gap-4 mb-6">
         <div className="relative flex-1 max-w-md">
@@ -146,6 +276,7 @@ export default function BillingPage() {
           </table>
         </div>
       </div>
+      </section>
 
       {isEntryModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">

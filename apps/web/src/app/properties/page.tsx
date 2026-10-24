@@ -24,7 +24,9 @@ import {
   Table as TableIcon,
   RefreshCw,
   X,
-  Map as MapIcon
+  Map as MapIcon,
+  Database,
+  Globe
 } from 'lucide-react';
 import { 
   getAllProperties, 
@@ -34,6 +36,7 @@ import {
   exportPropertiesCSV,
   CreatePropertyInput 
 } from '@/actions/propertyActions';
+import { runCountyParcelIngestion } from '@/actions/expansionActions';
 
 interface PropertyItem {
   id: string;
@@ -102,9 +105,36 @@ export default function PropertiesPage() {
   // CSV Import State
   const [csvText, setCsvText] = useState('');
 
+  // County CAD Parcel Ingestion State
+  const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
+  const [ingestCounty, setIngestCounty] = useState('Reeves');
+  const [ingestState, setIngestState] = useState('TX');
+  const [ingestLimit, setIngestLimit] = useState(10);
+  const [isIngesting, setIsIngesting] = useState(false);
+  const [ingestResult, setIngestResult] = useState<any>(null);
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
+  };
+
+  const handleRunIngest = async () => {
+    setIsIngesting(true);
+    setIngestResult(null);
+    try {
+      const res = await runCountyParcelIngestion(ingestCounty, ingestState, Number(ingestLimit));
+      if (res.success && res.data) {
+        setIngestResult(res.data);
+        showToast(`Successfully ingested ${res.data.count} parcels from ${ingestCounty} County CAD!`, 'success');
+        await loadProperties();
+      } else {
+        showToast((res as any).error || 'Ingestion failed', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsIngesting(false);
+    }
   };
 
   const loadProperties = async () => {
@@ -319,6 +349,13 @@ export default function PropertiesPage() {
               title="Import properties from CSV"
             >
               <Upload className="w-3.5 h-3.5" /> Import
+            </button>
+            <button
+              onClick={() => setIsIngestModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 transition-colors shadow-sm"
+              title="Ingest live county tax parcels via ArcGIS CAD open data"
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-400" /> Ingest CAD Parcels
             </button>
             <button
               onClick={() => setIsAddModalOpen(true)}
@@ -890,6 +927,120 @@ export default function PropertiesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* County CAD Parcel Ingestion Modal */}
+      {isIngestModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Ingest Public County CAD Parcels</h2>
+                  <p className="text-xs text-slate-400">Direct ArcGIS Open Data CAD & Tax Roll Sync into PostgreSQL</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => { setIsIngestModalOpen(false); setIngestResult(null); }} 
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 mt-4 text-xs">
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Target County CAD Authority</label>
+                <select
+                  value={`${ingestCounty},${ingestState}`}
+                  onChange={(e) => {
+                    const [c, s] = e.target.value.split(',');
+                    setIngestCounty(c);
+                    setIngestState(s);
+                  }}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="Reeves,TX">Reeves County Appraisal District (Texas - Permian Basin)</option>
+                  <option value="Midland,TX">Midland County Appraisal District (Texas - Permian Basin)</option>
+                  <option value="Costilla,CO">Costilla County GIS & Assessor (Colorado - San Luis Valley)</option>
+                  <option value="Mohave,AZ">Mohave County Assessor GIS (Arizona - Tri-State Area)</option>
+                  <option value="Brevard,FL">Brevard County Property Appraiser (Florida - Space Coast)</option>
+                  <option value="Elko,NV">Elko County Assessor GIS (Nevada - High Desert)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Ingestion Batch Limit</label>
+                <select
+                  value={ingestLimit}
+                  onChange={(e) => setIngestLimit(Number(e.target.value))}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="5">5 Parcels (Quick Test Batch)</option>
+                  <option value="10">10 Parcels (Standard Batch)</option>
+                  <option value="25">25 Parcels (Expanded Batch)</option>
+                  <option value="50">50 Parcels (Bulk Ingestion)</option>
+                </select>
+              </div>
+
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-slate-400">
+                <div className="text-white font-semibold flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-emerald-400" /> Automated Pipeline Capabilities:
+                </div>
+                <ul className="list-disc list-inside space-y-0.5 text-[11px]">
+                  <li>Connects directly to county ArcGIS REST FeatureServer endpoints.</li>
+                  <li>Translates ESRI geometry polygons to standard GeoJSON with calculated centroids.</li>
+                  <li>Extracts APN, legal description, deed book/page, assessed value, and property tax roll.</li>
+                  <li>Writes validated records into PostgreSQL with full audit provenance metadata.</li>
+                </ul>
+              </div>
+
+              {ingestResult && (
+                <div className="p-3 bg-emerald-950/60 border border-emerald-500/50 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-300 font-bold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Successfully Ingested {ingestResult.count} Parcels</span>
+                  </div>
+                  <div className="text-[11px] text-slate-300">
+                    Authority: <span className="font-mono text-emerald-300">{ingestResult.county} County, {ingestResult.state} CAD</span>
+                  </div>
+                  {ingestResult.ingestedApns && ingestResult.ingestedApns.length > 0 && (
+                    <div className="max-h-32 overflow-y-auto bg-slate-950/80 p-2 rounded border border-slate-800 font-mono text-[10px] space-y-1">
+                      {ingestResult.ingestedApns.map((apn: string, idx: number) => (
+                        <div key={idx} className="flex justify-between text-slate-300">
+                          <span>APN: {apn}</span>
+                          <span className="text-emerald-400">PostgreSQL Synced</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => { setIsIngestModalOpen(false); setIngestResult(null); }}
+                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRunIngest}
+                  disabled={isIngesting}
+                  className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-emerald-600/20"
+                >
+                  {isIngesting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+                  {isIngesting ? 'Ingesting from ArcGIS...' : 'Run Pipeline Ingestion'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
