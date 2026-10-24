@@ -5,7 +5,7 @@
     "buildCommand": "pnpm --filter @land-intelligence/database run db:generate && pnpm build && mkdir -p apps/web/.next/standalone/apps/web/.next && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/ && mkdir -p apps/web/.next/standalone/.next && cp -r apps/web/.next/static apps/web/.next/standalone/.next/"
   },
   "deploy": {
-    "startCommand": "npx prisma db push --schema=packages/database/prisma/schema.prisma && HOSTNAME=0.0.0.0 PORT=$PORT node apps/web/.next/standalone/apps/web/server.js",
+    "startCommand": "chmod +x scripts/railway-entrypoint.sh && sh scripts/railway-entrypoint.sh",
     "healthcheckPath": "/",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
