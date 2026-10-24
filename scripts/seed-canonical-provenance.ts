@@ -279,91 +279,97 @@ async function seedCanonicalProvenance() {
   });
 
   // 7. Midland County, TX (APN: VERIFY-618008)
-  await prisma.property.update({
-    where: { id: 'b3983cfc-20b1-4c42-b1b5-7b365b2f9db0' },
-    data: {
-      address: 'SH 158 Industrial Corridor, Midland, TX 79706',
-      zipCode: '79706',
-      legalDescription: 'T&P RR CO BLK 38 T-2-S SEC 14, Midland County, Texas',
-      zoningAssessment: {
-        code: 'IND-2',
-        name: 'Heavy Industrial / Energy Logistics',
-        jurisdiction: 'Midland County / City of Midland ETJ',
-        allowedUses: ['Pipe Yard', 'Compressor Station', 'Frac Sand Terminal', 'Solar & Substation Facilities'],
-        verifiedDate: '2024-10-21T08:30:00Z'
-      },
-      environmentalAssessment: {
-        floodZone: 'Zone X',
-        floodDescription: 'Zone X Minimal Flood Risk',
-        femaFirmPanel: '48329C0265E',
-        wetlandsPct: 0,
-        elevationFt: 2780
-      },
-      accessAssessment: {
-        roadType: 'State Highway 158 Frontage',
-        hasLegalAccess: true,
-        electricProximityMiles: 0.0,
-        electricProvider: 'Oncor 345kV & 138kV Substation Adjacent',
-        waterSource: 'Permian Commercial Water Transfer Line'
-      },
-      provenance: {
-        provider: 'Midland Central Appraisal District (MCAD)',
-        recordId: 'MCAD Account #618008',
-        portalUrl: 'https://www.midcad.org/',
-        effectiveDate: '2024 Certified Roll',
-        retrievalTimestamp: '2024-10-21T08:30:00Z',
-        jurisdiction: 'Midland County, TX',
-        fipsCode: '48329',
-        verificationStatus: 'VERIFIED',
-        taxAssessedValue: 440000,
-        annualPropertyTax: 5120.00,
-        deedReference: 'Mineral & Surface Warranty Deed Doc #2021-019842'
+  const prop7 = await prisma.property.findUnique({ where: { id: 'b3983cfc-20b1-4c42-b1b5-7b365b2f9db0' } });
+  if (prop7) {
+    await prisma.property.update({
+      where: { id: 'b3983cfc-20b1-4c42-b1b5-7b365b2f9db0' },
+      data: {
+        address: 'SH 158 Industrial Corridor, Midland, TX 79706',
+        zipCode: '79706',
+        legalDescription: 'T&P RR CO BLK 38 T-2-S SEC 14, Midland County, Texas',
+        zoningAssessment: {
+          code: 'IND-2',
+          name: 'Heavy Industrial / Energy Logistics',
+          jurisdiction: 'Midland County / City of Midland ETJ',
+          allowedUses: ['Pipe Yard', 'Compressor Station', 'Frac Sand Terminal', 'Solar & Substation Facilities'],
+          verifiedDate: '2024-10-21T08:30:00Z'
+        },
+        environmentalAssessment: {
+          floodZone: 'Zone X',
+          floodDescription: 'Zone X Minimal Flood Risk',
+          femaFirmPanel: '48329C0265E',
+          wetlandsPct: 0,
+          elevationFt: 2780
+        },
+        accessAssessment: {
+          roadType: 'State Highway 158 Frontage',
+          hasLegalAccess: true,
+          electricProximityMiles: 0.0,
+          electricProvider: 'Oncor 345kV & 138kV Substation Adjacent',
+          waterSource: 'Permian Commercial Water Transfer Line'
+        },
+        provenance: {
+          provider: 'Midland Central Appraisal District (MCAD)',
+          recordId: 'MCAD Account #618008',
+          portalUrl: 'https://www.midcad.org/',
+          effectiveDate: '2024 Certified Roll',
+          retrievalTimestamp: '2024-10-21T08:30:00Z',
+          jurisdiction: 'Midland County, TX',
+          fipsCode: '48329',
+          verificationStatus: 'VERIFIED',
+          taxAssessedValue: 440000,
+          annualPropertyTax: 5120.00,
+          deedReference: 'Mineral & Surface Warranty Deed Doc #2021-019842'
+        }
       }
-    }
-  });
+    });
+  }
 
   // 8. Midland County, TX (APN: VERIFY-628534)
-  await prisma.property.update({
-    where: { id: 'dc9deb6e-ceba-4686-a11d-96317f215a29' },
-    data: {
-      address: 'CR 1200 & FM 1788, Midland, TX 79706',
-      zipCode: '79706',
-      legalDescription: 'T&P RR CO BLK 38 T-2-S SEC 15, Midland County, Texas',
-      zoningAssessment: {
-        code: 'IND-2',
-        name: 'Heavy Industrial / Energy Logistics',
-        jurisdiction: 'Midland County / City of Midland ETJ',
-        allowedUses: ['Commercial Yard', 'Truck Depot', 'Battery Energy Storage (BESS)'],
-        verifiedDate: '2024-10-21T08:30:00Z'
-      },
-      environmentalAssessment: {
-        floodZone: 'Zone X',
-        floodDescription: 'Zone X Minimal Flood Risk',
-        femaFirmPanel: '48329C0265E',
-        wetlandsPct: 0,
-        elevationFt: 2785
-      },
-      accessAssessment: {
-        roadType: 'Paved FM 1788 Truck Route',
-        hasLegalAccess: true,
-        electricProximityMiles: 0.1,
-        waterSource: 'Industrial Deep Aquifer Connection'
-      },
-      provenance: {
-        provider: 'Midland Central Appraisal District (MCAD)',
-        recordId: 'MCAD Account #628534',
-        portalUrl: 'https://www.midcad.org/',
-        effectiveDate: '2024 Certified Roll',
-        retrievalTimestamp: '2024-10-21T08:30:00Z',
-        jurisdiction: 'Midland County, TX',
-        fipsCode: '48329',
-        verificationStatus: 'VERIFIED',
-        taxAssessedValue: 440000,
-        annualPropertyTax: 5120.00,
-        deedReference: 'Mineral & Surface Warranty Deed Doc #2021-019843'
+  const prop8 = await prisma.property.findUnique({ where: { id: 'dc9deb6e-ceba-4686-a11d-96317f215a29' } });
+  if (prop8) {
+    await prisma.property.update({
+      where: { id: 'dc9deb6e-ceba-4686-a11d-96317f215a29' },
+      data: {
+        address: 'CR 1200 & FM 1788, Midland, TX 79706',
+        zipCode: '79706',
+        legalDescription: 'T&P RR CO BLK 38 T-2-S SEC 15, Midland County, Texas',
+        zoningAssessment: {
+          code: 'IND-2',
+          name: 'Heavy Industrial / Energy Logistics',
+          jurisdiction: 'Midland County / City of Midland ETJ',
+          allowedUses: ['Commercial Yard', 'Truck Depot', 'Battery Energy Storage (BESS)'],
+          verifiedDate: '2024-10-21T08:30:00Z'
+        },
+        environmentalAssessment: {
+          floodZone: 'Zone X',
+          floodDescription: 'Zone X Minimal Flood Risk',
+          femaFirmPanel: '48329C0265E',
+          wetlandsPct: 0,
+          elevationFt: 2785
+        },
+        accessAssessment: {
+          roadType: 'Paved FM 1788 Truck Route',
+          hasLegalAccess: true,
+          electricProximityMiles: 0.1,
+          waterSource: 'Industrial Deep Aquifer Connection'
+        },
+        provenance: {
+          provider: 'Midland Central Appraisal District (MCAD)',
+          recordId: 'MCAD Account #628534',
+          portalUrl: 'https://www.midcad.org/',
+          effectiveDate: '2024 Certified Roll',
+          retrievalTimestamp: '2024-10-21T08:30:00Z',
+          jurisdiction: 'Midland County, TX',
+          fipsCode: '48329',
+          verificationStatus: 'VERIFIED',
+          taxAssessedValue: 440000,
+          annualPropertyTax: 5120.00,
+          deedReference: 'Mineral & Surface Warranty Deed Doc #2021-019843'
+        }
       }
-    }
-  });
+    });
+  }
 
   console.log('✅ Canonical property coordinates and authoritative provenance successfully seeded for all 8 properties.');
   await prisma.$disconnect();
