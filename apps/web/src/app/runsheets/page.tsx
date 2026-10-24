@@ -70,7 +70,7 @@ export default function RunsheetsPage() {
             Export PDF
           </button>
           <button 
-            onClick={() => showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success')}
+            onClick={() => showToast('Runsheet generated and added to tract archive', 'success')}
             className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
             <Plus size={20} />

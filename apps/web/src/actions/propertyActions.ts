@@ -44,12 +44,22 @@ export async function getAllProperties() {
         apn: true,
         county: true,
         state: true,
+        address: true,
+        zipCode: true,
         acreage: true,
+        usableAcreage: true,
         lifecycleStage: true,
+        propertyClass: true,
         ownerName: true,
+        askingPrice: true,
+        estimatedMarketValue: true,
+        suggestedOfferPrice: true,
+        dealScore: true,
         rawGeometry: true,
         centroidLat: true,
-        centroidLng: true
+        centroidLng: true,
+        createdAt: true,
+        updatedAt: true
       }
     });
     return properties;
@@ -58,6 +68,7 @@ export async function getAllProperties() {
     return [];
   }
 }
+
 
 export interface CreatePropertyInput {
   apn: string;
@@ -183,3 +194,16 @@ export async function updatePropertyStage(id: string, stage: any): Promise<Actio
     return { success: false, error: error.message || "Failed to update property stage" };
   }
 }
+
+export async function deleteProperty(id: string): Promise<ActionResult<{id: string}>> {
+  try {
+    await prisma.property.delete({
+      where: { id, organizationId: currentOrganizationId }
+    });
+    return { success: true, data: { id } };
+  } catch (error: any) {
+    console.error("Error deleting property:", error);
+    return { success: false, error: error.message || "Failed to delete property" };
+  }
+}
+

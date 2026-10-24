@@ -44,7 +44,8 @@ export default function ToursPage() {
   };
 
   const updateStatus = (id: string, status: TourStatus) => {
-    showToast(`Tour status persistence coming soon`);
+    setTours(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+    showToast(`Tour status updated to ${status}`);
   };
 
   const StatusBadge = ({ status }: { status: TourStatus }) => {

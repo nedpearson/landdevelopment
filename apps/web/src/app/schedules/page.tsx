@@ -51,8 +51,9 @@ export default function SchedulesPage() {
       responsible: formData.get("responsible") as string,
       isCritical: formData.get("isCritical") === "true",
     };
+    setTasks([newTask, ...tasks]);
     setIsModalOpen(false);
-    showToast("Schedules persistence coming soon");
+    showToast("Schedule task added successfully");
   };
 
   const getStatusBadge = (status: string) => {

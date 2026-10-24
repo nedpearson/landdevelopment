@@ -5,29 +5,21 @@ import { prisma } from '@land-intelligence/database';
 export async function getMapProperties() {
   try {
     const properties = await prisma.property.findMany({
-      where: {
-        centroidLat: { not: null },
-        centroidLng: { not: null }
-      },
       select: {
         id: true,
         apn: true,
-        address: true,
-        county: true,
-        state: true,
-        acreage: true,
-        askingPrice: true,
-        dealScore: true,
         centroidLat: true,
         centroidLng: true,
-        propertyClass: true
+        estimatedMarketValue: true,
+        lifecycleStage: true,
       },
-      take: 200 // Limit for prototype performance
+      where: {
+        centroidLat: { not: null },
+        centroidLng: { not: null },
+      },
     });
-
-    return properties;
-  } catch (error) {
-    console.error("Failed to fetch map properties:", error);
-    return [];
+    return { success: true, data: properties };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

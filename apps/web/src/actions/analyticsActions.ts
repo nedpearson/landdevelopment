@@ -1,22 +1,65 @@
 'use server';
+
 import { prisma } from '@land-intelligence/database';
 
+export async function getDashboardAnalytics() {
+  try {
+    const totalProperties = await prisma.property.count();
+    
+    const activeProjects = await prisma.landProject.count({
+      where: {
+        status: { not: 'COMPLETED' }
+      }
+    });
+
+    // Approximate total value
+    const valResult = await prisma.property.aggregate({
+      _sum: {
+        estimatedMarketValue: true
+      }
+    });
+    
+    // Recent properties
+    const recentProperties = await prisma.property.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: { id: true, apn: true, estimatedMarketValue: true, lifecycleStage: true, createdAt: true }
+    });
+
+    return {
+      success: true,
+      data: {
+        totalProperties,
+        activeProjects,
+        totalValue: valResult._sum.estimatedMarketValue || 0,
+        recentProperties
+      }
+    };
+  } catch (error: any) {
+    console.error('Analytics Error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getAnalyticsData() {
-  const [properties, comps] = await Promise.all([
-    prisma.property.findMany({ where: { organizationId: 'org_default' } }),
-    prisma.comp.findMany()
-  ]);
+  try {
+    const propertiesCount = await prisma.property.count();
+    const compsCount = await prisma.comp.count();
+    const agg = await prisma.property.aggregate({
+      _sum: { acreage: true, estimatedMarketValue: true },
+      _avg: { askingPrice: true }
+    });
+    const totalAcreage = agg._sum.acreage || 0;
+    const totalValue = agg._sum.estimatedMarketValue || 0;
+    const avgPricePerAcre = totalAcreage > 0 ? Math.round(totalValue / totalAcreage) : 0;
 
-  const compsCount = comps.length;
-  const avgPricePerAcre = compsCount > 0 ? comps.reduce((acc, c) => acc + (c.pricePerAcre || 0), 0) / compsCount : 0;
-  
-  const propertiesCount = properties.length;
-  const totalAcreage = properties.reduce((acc, p) => acc + (p.acreage || 0), 0);
-
-  return {
-    propertiesCount,
-    totalAcreage,
-    compsCount,
-    avgPricePerAcre
-  };
+    return {
+      propertiesCount,
+      totalAcreage,
+      compsCount,
+      avgPricePerAcre,
+    };
+  } catch (error) {
+    return { propertiesCount: 0, totalAcreage: 0, compsCount: 0, avgPricePerAcre: 0 };
+  }
 }

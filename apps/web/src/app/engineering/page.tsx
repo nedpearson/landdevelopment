@@ -52,8 +52,9 @@ export default function EngineeringPage() {
       percentComplete: Number(formData.get("percentComplete")),
       submissionDate: formData.get("submissionDate") as string,
     };
+    setItems([newItem, ...items]);
     setIsModalOpen(false);
-    showToast("Engineering persistence coming soon");
+    showToast("Engineering task added successfully");
   };
 
   const getStatusBadge = (status: string) => {

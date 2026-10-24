@@ -29,9 +29,16 @@ export async function createPortfolioHolding(data: any) {
 
 export async function updateHoldingValue(id: string, estimatedCurrentValue: number) {
   try {
+    const existing = await prisma.portfolioHolding.findUnique({ where: { id } });
+    const basis = existing?.totalCostBasis || 0;
+    const unrealizedProfit = estimatedCurrentValue - basis;
+
     const holding = await prisma.portfolioHolding.update({
       where: { id },
-      data: { estimatedCurrentValue },
+      data: { 
+        estimatedCurrentValue,
+        unrealizedProfit
+      },
     });
     return { success: true as const, data: holding };
   } catch (error: any) {
@@ -39,6 +46,17 @@ export async function updateHoldingValue(id: string, estimatedCurrentValue: numb
     return { success: false as const, error: error.message || 'Failed to update holding value' };
   }
 }
+
+export async function deletePortfolioHolding(id: string) {
+  try {
+    await prisma.portfolioHolding.delete({ where: { id } });
+    return { success: true as const };
+  } catch (error: any) {
+    console.error('Failed to delete holding:', error);
+    return { success: false as const, error: error.message || 'Failed to delete holding' };
+  }
+}
+
 
 export async function getPropertiesForDropdown() {
   try {

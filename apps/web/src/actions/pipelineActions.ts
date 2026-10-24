@@ -8,20 +8,7 @@ export async function getPipelineDeals() {
   try {
     const deals = await prisma.property.findMany({
       where: {
-        organizationId: ORG_ID,
-        lifecycleStage: {
-          in: [
-            'PROSPECT',
-            'CONTACTED',
-            'QUALIFIED',
-            'UNDERWRITING',
-            'DUE_DILIGENCE',
-            'OFFER_DRAFTED',
-            'OFFER_SENT',
-            'NEGOTIATION',
-            'CONTRACTED'
-          ]
-        }
+        organizationId: ORG_ID
       },
       orderBy: { updatedAt: 'desc' }
     });
@@ -31,6 +18,7 @@ export async function getPipelineDeals() {
     return [];
   }
 }
+
 
 export async function updateDealStage(id: string, stage: any) {
   try {

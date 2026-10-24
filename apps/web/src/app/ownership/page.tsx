@@ -38,6 +38,7 @@ const mockOwnership: OwnershipRow[] = [
 
 export default function OwnershipPage() {
   const [selectedTract, setSelectedTract] = useState<Tract>(tractsList[0]);
+  const [ownership, setOwnership] = useState<OwnershipRow[]>(mockOwnership);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
@@ -46,13 +47,29 @@ export default function OwnershipPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleAddInstrument = (e: React.FormEvent) => {
+  const handleAddInstrument = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const num = Number(fd.get('num')) || 1;
+    const den = Number(fd.get('den')) || 1;
+    const newRow: OwnershipRow = {
+      id: String(Date.now()),
+      instrument: (fd.get('instrument') as string) || 'Warranty Deed',
+      grantor: (fd.get('grantor') as string) || '',
+      grantee: (fd.get('grantee') as string) || '',
+      date: (fd.get('date') as string) || new Date().toISOString().split('T')[0],
+      interestType: (fd.get('interestType') as string) || 'Minerals',
+      num,
+      den,
+      decimal: den !== 0 ? num / den : 0,
+      depth: 'All Depths',
+    };
+    setOwnership([...ownership, newRow]);
     setIsModalOpen(false);
-    showToast('Database persistence for this module is coming soon. Your entry has been noted.', 'success');
+    showToast('Ownership instrument recorded successfully', 'success');
   };
 
-  const totalDecimal = mockOwnership.filter(o => o.interestType === 'Minerals').reduce((acc, curr) => acc + curr.decimal, 0);
+  const totalDecimal = ownership.filter(o => o.interestType === 'Minerals').reduce((acc, curr) => acc + curr.decimal, 0);
 
   return (
     <div className="min-h-screen bg-slate-900 text-white p-8 flex flex-col">
@@ -125,7 +142,7 @@ export default function OwnershipPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
-                {mockOwnership.map((row) => (
+                {ownership.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-700/30 transition-colors">
                     <td className="px-4 py-3 text-sm text-amber-400">{row.instrument}</td>
                     <td className="px-4 py-3 text-sm text-slate-300">{row.grantor}</td>
@@ -171,7 +188,7 @@ export default function OwnershipPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Instrument Type</label>
-                  <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none">
+                  <select name="instrument" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none">
                     <option>Warranty Deed</option>
                     <option>Mineral Deed</option>
                     <option>Oil & Gas Lease</option>
@@ -180,35 +197,35 @@ export default function OwnershipPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Date</label>
-                  <input type="date" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
+                  <input name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Grantor</label>
-                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
+                  <input name="grantor" type="text" placeholder="Grantor Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Grantee</label>
-                  <input type="text" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
+                  <input name="grantee" type="text" placeholder="Grantee Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">Interest Type</label>
-                  <select className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none">
+                  <select name="interestType" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none">
                     <option>Minerals</option>
                     <option>Leasehold</option>
                     <option>Royalty</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Numerator</label>
-                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Numerator</label>
+                  <input name="num" type="number" defaultValue={1} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Denominator</label>
-                  <input type="number" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Denominator</label>
+                  <input name="den" type="number" defaultValue={1} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:border-amber-500 focus:outline-none" required />
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-3">

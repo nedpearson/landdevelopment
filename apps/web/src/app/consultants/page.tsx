@@ -55,8 +55,9 @@ export default function ConsultantsPage() {
       contractAmount: Number(formData.get("contractAmount")),
       status: formData.get("status") as any,
     };
+    setConsultants([newConsultant, ...consultants]);
     setIsModalOpen(false);
-    showToast("Consultants persistence coming soon");
+    showToast("Consultant added successfully");
   };
 
   const getStatusBadge = (status: string) => {

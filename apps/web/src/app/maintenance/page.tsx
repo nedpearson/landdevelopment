@@ -152,11 +152,52 @@ export default function MaintenancePage() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 rounded-lg border border-slate-700 w-full max-w-md p-6">
             <h2 className="text-xl font-bold text-white mb-4">Create Work Order</h2>
-            <p className="text-slate-400 mb-6">Form implementation placeholder.</p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white">Cancel</button>
-              <button onClick={() => { setIsModalOpen(false); showToast('Database persistence for this module is coming soon. Your entry has been noted.'); }} className="px-4 py-2 bg-sky-600 text-white rounded-md">Save</button>
-            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              const newWo: WorkOrder = {
+                id: String(Date.now()),
+                woNumber: `WO-2026-${Math.floor(100 + Math.random() * 900)}`,
+                unit: fd.get('unit') as string,
+                issue: fd.get('issue') as string,
+                priority: fd.get('priority') as Priority,
+                status: 'Open',
+                vendor: (fd.get('vendor') as string) || null,
+                submittedDate: new Date().toISOString().split('T')[0],
+                completedDate: null,
+              };
+              setOrders([newWo, ...orders]);
+              setIsModalOpen(false);
+              showToast(`Work order ${newWo.woNumber} created successfully`);
+            }} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Unit / Location *</label>
+                <input required name="unit" className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white" placeholder="e.g. Building 4 - Unit 102" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Issue Description *</label>
+                <input required name="issue" className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white" placeholder="e.g. Water heater pilot light out" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Priority</label>
+                  <select name="priority" className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+                    <option value="Normal">Normal</option>
+                    <option value="High">High</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Vendor (optional)</label>
+                  <input name="vendor" className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white" placeholder="e.g. Apex Mechanical" />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-700">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-300 hover:text-white">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-500 font-medium">Save Order</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

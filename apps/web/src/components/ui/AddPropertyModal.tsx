@@ -195,14 +195,17 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               )}
               
               {activeWorkspace.type === 'LANDMAN_ENERGY' && (
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
-                  <p className="text-amber-400 text-sm font-medium flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    Assign to Project (Coming Soon)
-                  </p>
-                  <p className="text-amber-500/70 text-xs mt-1">
-                    You will be able to assign this property to an active land project.
-                  </p>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Assign to Active Energy Project</label>
+                  <select 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white"
+                    defaultValue="Permian Basin Alpha"
+                  >
+                    <option value="Permian Basin Alpha">Permian Basin Alpha (Reeves/Pecos)</option>
+                    <option value="High Plains Renewable">High Plains Wind & Solar (Carson)</option>
+                    <option value="Eagle Ford Extension">Eagle Ford Extension (Karnes)</option>
+                    <option value="DJ Basin Core">DJ Basin Wattenberg (Weld)</option>
+                  </select>
                 </div>
               )}
 

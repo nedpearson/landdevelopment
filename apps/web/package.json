@@ -9,22 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.3",
     "@land-intelligence/database": "workspace:*",
     "@land-intelligence/domain": "workspace:*",
     "@land-intelligence/integrations": "workspace:*",
     "@land-intelligence/ui": "workspace:*",
     "@react-pdf/renderer": "^4.5.1",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "lucide-react": "^0.380.0",
     "mapbox-gl": "^3.27.0",
+    "next-auth": "^4.24.15",
     "openai": "^7.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-map-gl": "^8.1.2",
-    "tailwind-merge": "^2.3.0"
+    "tailwind-merge": "^2.3.0",
+    "zod": "^3.23.8",
+    "zod-form-data": "^3.0.3"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/mapbox-gl": "^3.5.0",
     "@types/node": "^20.19.43",
     "@types/react": "^18.3.31",

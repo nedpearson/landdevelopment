@@ -17,7 +17,11 @@ export function DiscoverMap() {
   const { activeWorkspace } = useWorkspace();
 
   useEffect(() => {
-    getMapProperties().then(setProperties);
+    getMapProperties().then(res => {
+      if (res.success && res.data) {
+        setProperties(res.data);
+      }
+    });
   }, []);
 
   if (!MAPBOX_TOKEN) {

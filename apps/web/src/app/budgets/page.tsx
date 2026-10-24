@@ -51,8 +51,9 @@ export default function BudgetsPage() {
       committed: Number(formData.get("committed")) || 0,
       spent: Number(formData.get("spent")) || 0,
     };
+    setItems([newItem, ...items]);
     setIsModalOpen(false);
-    showToast("Budgets persistence coming soon");
+    showToast("Budget line item added successfully");
   };
 
   const totals = items.reduce((acc, item) => ({

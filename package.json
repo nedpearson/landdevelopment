@@ -25,6 +25,8 @@
     }
   },
   "devDependencies": {
+    "@prisma/client": "5.22.0",
+    "prisma": "5.22.0",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0"
   },

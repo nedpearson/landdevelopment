@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Columns, List, Filter, Search, Plus, Map, Briefcase, FileText, ChevronRight, DollarSign, Calendar, Target, Settings, Building2, User, Check } from 'lucide-react';
-import { getAllProperties } from '@/actions/propertyActions';
+import { getAllProperties, updatePropertyStage } from '@/actions/propertyActions';
 
 const STAGES = [
   'PROSPECT',
@@ -38,8 +38,18 @@ export default function DealsPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const advanceStage = (dealId: string, currentStage: string) => {
-    showToast(`Advancing deals persistence coming soon`);
+  const advanceStage = async (dealId: string, currentStage: string) => {
+    const currentIndex = STAGES.indexOf(currentStage);
+    if (currentIndex >= 0 && currentIndex < STAGES.length - 1) {
+      const nextStage = STAGES[currentIndex + 1];
+      try {
+        await updatePropertyStage(dealId, nextStage as any);
+        setDeals(prev => prev.map(d => d.id === dealId ? { ...d, lifecycleStage: nextStage } : d));
+        showToast(`Deal advanced to ${nextStage.replace(/_/g, ' ')}`);
+      } catch (err: any) {
+        showToast(err.message || 'Failed to advance stage');
+      }
+    }
   };
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val || 0);

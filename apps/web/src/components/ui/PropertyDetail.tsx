@@ -142,7 +142,7 @@ export function PropertyDetail({ property }: { property: any }) {
             <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
               <h2 className="font-medium text-white flex items-center gap-2"><FileSearch className="w-4 h-4" /> Due Diligence Items</h2>
               <button 
-                onClick={() => showToast('Due Diligence modal coming soon', 'success')}
+                onClick={() => router.push('/diligence')}
                 className="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Item
@@ -185,7 +185,7 @@ export function PropertyDetail({ property }: { property: any }) {
             <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
               <h2 className="font-medium text-white flex items-center gap-2"><Scale className="w-4 h-4" /> Comparable Sales</h2>
               <button 
-                onClick={() => showToast('Add Comp modal coming soon', 'success')}
+                onClick={() => router.push('/underwriting')}
                 className="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Comp
@@ -228,7 +228,7 @@ export function PropertyDetail({ property }: { property: any }) {
             <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
               <h2 className="font-medium text-white flex items-center gap-2"><FileText className="w-4 h-4" /> Offers</h2>
               <button 
-                onClick={() => showToast('Create Offer modal coming soon', 'success')}
+                onClick={() => router.push('/offers')}
                 className="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Create Offer
@@ -269,7 +269,7 @@ export function PropertyDetail({ property }: { property: any }) {
             <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
               <h2 className="font-medium text-white flex items-center gap-2"><MessageSquare className="w-4 h-4" /> Communications</h2>
               <button 
-                onClick={() => showToast('Log Communication modal coming soon', 'success')}
+                onClick={() => router.push('/pipeline')}
                 className="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Log Communication

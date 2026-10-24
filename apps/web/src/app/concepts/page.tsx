@@ -52,8 +52,9 @@ export default function ConceptsPage() {
       far: Number(formData.get("far")),
       features: (formData.get("features") as string).split(',').map(s => s.trim()),
     };
+    setConcepts([newRecord, ...concepts]);
     setIsModalOpen(false);
-    showToast("Concepts persistence coming soon");
+    showToast("Concept plan added successfully");
   };
 
   return (
