@@ -43,9 +43,22 @@
 }
 
 /* Mobile Safe Areas and Tap Highlights */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 @supports (padding: env(safe-area-inset-bottom)) {
   .safe-area-bottom {
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
   .safe-area-top {
     padding-top: max(0.5rem, env(safe-area-inset-top));
@@ -54,5 +67,13 @@
 
 * {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
+
+html, body {
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+}
+
 

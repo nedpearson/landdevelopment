@@ -14,12 +14,22 @@ import type { Metadata, Viewport } from 'next';
 export const metadata: Metadata = {
   title: 'Land Intelligence OS',
   description: 'AI-Powered Land Development & Intelligence Platform',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'LandOS',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
   themeColor: '#030303',
 };
 

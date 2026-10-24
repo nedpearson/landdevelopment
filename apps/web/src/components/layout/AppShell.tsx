@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#030303] text-slate-100 font-sans relative selection:bg-indigo-500/30">
+    <div className="flex h-[100dvh] min-h-[100dvh] w-full max-w-full overflow-hidden bg-[#030303] text-slate-100 font-sans relative selection:bg-indigo-500/30">
       {/* ────────────────── MOBILE SLIDE-OVER DRAWER ────────────────── */}
       {mobileMenuOpen && (
         <div 
@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div 
-        className={`fixed inset-y-0 left-0 z-50 w-[82%] max-w-[320px] bg-[#070707] border-r border-white/[0.08] shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-[82%] max-w-[320px] bg-[#070707] border-r border-white/[0.08] shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out lg:hidden pt-safe pb-safe ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -188,8 +188,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ────────────────── MAIN APP WRAPPER ────────────────── */}
       <main className="flex-1 flex flex-col overflow-hidden bg-[#030303] relative z-10 w-full">
         {/* Mobile Header (lg:hidden) */}
-        <header className="lg:hidden h-14 border-b border-white/[0.06] bg-[#050505]/90 backdrop-blur-xl px-3.5 flex items-center justify-between shrink-0 sticky top-0 z-30">
-          <div className="flex items-center gap-2.5">
+        <header className="lg:hidden h-14 pt-safe border-b border-white/[0.06] bg-[#050505]/95 backdrop-blur-2xl px-3 flex items-center justify-between shrink-0 sticky top-0 z-30">
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setMobileMenuOpen(true)}
               className="p-2 -ml-1 text-slate-300 hover:text-white rounded-lg hover:bg-white/[0.06] transition-colors"
@@ -213,7 +213,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Search className="w-4 h-4" />
             </button>
-            <WorkspaceSwitcher />
+            <WorkspaceSwitcher compact={true} />
           </div>
         </header>
 
@@ -243,12 +243,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Content Viewport */}
-        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 lg:p-8 pb-24 lg:pb-8 animate-fade-in w-full">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:p-8 pb-32 sm:pb-28 lg:pb-8 animate-fade-in w-full touch-pan-y overscroll-y-contain">
           {children}
         </div>
 
         {/* ────────────────── MOBILE BOTTOM DOCK ────────────────── */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070707]/95 backdrop-blur-2xl border-t border-white/[0.08] px-2 py-1.5 safe-area-bottom flex items-center justify-around shadow-2xl">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070707]/95 backdrop-blur-2xl border-t border-white/[0.08] px-3 pt-1.5 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around shadow-2xl safe-area-bottom">
           {/* Home */}
           <Link
             href="/"

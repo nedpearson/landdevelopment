@@ -5,7 +5,11 @@ import { useWorkspace } from "../providers/WorkspaceProvider";
 import { workspaceRegistry, WorkspaceType } from "@/lib/workspace/WorkspaceRegistry";
 import { ChevronDown } from "lucide-react";
 
-export function WorkspaceSwitcher() {
+interface WorkspaceSwitcherProps {
+  compact?: boolean;
+}
+
+export function WorkspaceSwitcher({ compact = false }: WorkspaceSwitcherProps) {
   const { activeWorkspace, setWorkspace } = useWorkspace();
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -28,15 +32,18 @@ export function WorkspaceSwitcher() {
     <div className="relative z-50" ref={menuRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors text-sm text-slate-200 shadow-sm"
+        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] active:scale-95 transition-all text-xs sm:text-sm text-slate-200 shadow-sm"
+        aria-label="Switch Persona"
       >
         <CurrentIcon className={`w-4 h-4 ${activeWorkspace.themeColor}`} />
-        <span className="font-medium whitespace-nowrap">{activeWorkspace.label}</span>
+        <span className={`font-medium whitespace-nowrap ${compact ? 'hidden sm:inline' : 'hidden xs:inline'}`}>
+          {activeWorkspace.label}
+        </span>
         <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-lg shadow-xl py-1 overflow-hidden animate-fade-in origin-top-right">
+        <div className="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-[#090909] border border-white/[0.1] rounded-xl shadow-2xl py-1 overflow-hidden animate-fade-in origin-top-right z-[100]">
           <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
             <span>Switch Workspace</span>
           </div>

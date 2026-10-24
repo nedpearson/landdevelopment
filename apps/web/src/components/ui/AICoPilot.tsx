@@ -64,10 +64,10 @@ export function AICoPilot() {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 p-3.5 sm:p-4 bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-full shadow-2xl shadow-indigo-500/25 border border-indigo-400/30 transition-all hover:scale-105 active:scale-95 z-[120] flex items-center justify-center group"
+        className="hidden lg:flex fixed bottom-6 right-6 p-4 bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-full shadow-2xl shadow-indigo-500/25 border border-indigo-400/30 transition-all hover:scale-105 active:scale-95 z-[120] items-center justify-center group"
         aria-label="Open AI Co-Pilot"
       >
-        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:rotate-12" />
+        <Sparkles className="w-6 h-6 transition-transform group-hover:rotate-12" />
       </button>
     );
   }
@@ -81,7 +81,7 @@ export function AICoPilot() {
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full sm:w-96 border-l border-white/[0.08] bg-[#090909]/95 backdrop-blur-2xl flex flex-col h-full z-[135] shadow-2xl transition-transform duration-300 ease-in-out">
+      <div className="fixed inset-y-0 right-0 w-full sm:w-96 border-l border-white/[0.08] bg-[#090909]/98 backdrop-blur-2xl flex flex-col h-full z-[135] shadow-2xl pt-safe pb-safe transition-transform duration-300 ease-in-out">
         {/* Header */}
         <div className="p-4 border-b border-white/[0.06] bg-[#0c0c0c]/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
