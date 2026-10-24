@@ -92,10 +92,17 @@ export default function DealsPage() {
               
               <div className="p-3 overflow-y-auto space-y-3 custom-scrollbar flex-1">
                 {stageDeals.map(deal => (
-                  <div key={deal.id} className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-sm hover:border-amber-500/50 transition-colors group cursor-pointer">
-                    <h4 className="font-medium text-sm text-white mb-2 flex items-start gap-2">
-                      <Building2 className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                      <span className="truncate">APN: {deal.apn}</span>
+                  <div key={deal.id} className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-sm hover:border-amber-500/50 transition-colors group">
+                    <h4 className="font-medium text-sm text-white mb-2 flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Building2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <a href={`/properties/${deal.id}`} className="truncate font-mono font-bold text-white hover:text-emerald-400 hover:underline">
+                          APN: {deal.apn}
+                        </a>
+                      </div>
+                      <a href={`/properties/${deal.id}`} className="text-[10px] text-emerald-400 hover:underline font-bold shrink-0">
+                        Profile &rarr;
+                      </a>
                     </h4>
                     
                     <div className="space-y-1.5 mb-3">

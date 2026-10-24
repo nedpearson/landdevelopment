@@ -1,90 +1,136 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, MapPin, User, FileText, Briefcase, X, ArrowRight, Home } from 'lucide-react';
-
-const MOCK_RESULTS = {
-  properties: [
-    { id: 'p1', title: 'Smith Tract - 40 Acres', type: 'Property', apn: '123-456-789', county: 'Travis County', acreage: '40.5', status: 'Available' },
-    { id: 'p2', title: 'Riverside Development', type: 'Property', apn: '987-654-321', county: 'Williamson County', acreage: '120.0', status: 'Under Contract' }
-  ],
-  contacts: [
-    { id: 'c1', title: 'Sarah Jenkins', type: 'Contact', email: 'sarah@example.com', phone: '(555) 123-4567', role: 'Broker' },
-    { id: 'c2', title: 'Ned Pearson', type: 'Contact', email: 'ned@example.com', phone: '(555) 987-6543', role: 'Owner' }
-  ],
-  documents: [
-    { id: 'd1', title: 'Warranty_Deed_Smith_Tract.pdf', type: 'Document', fileType: 'Deed', date: '2023-10-15' },
-    { id: 'd2', title: 'Phase_1_ESA_Riverside.pdf', type: 'Document', fileType: 'Report', date: '2023-10-20' }
-  ],
-  deals: [
-    { id: 'dl1', title: 'Smith Tract Acquisition', type: 'Deal', status: 'In Negotiation', price: '$450,000' },
-    { id: 'dl2', title: 'Riverside Sale', type: 'Deal', status: 'Closed', price: '$1,200,000' }
-  ]
-};
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { 
+  Search, 
+  MapPin, 
+  User, 
+  FileText, 
+  Briefcase, 
+  X, 
+  ArrowRight, 
+  ShieldCheck,
+  Building2,
+  DollarSign
+} from 'lucide-react';
+import { getAllProperties } from '@/actions/propertyActions';
+import { getCanonicalOwners, getCanonicalDeals } from '@/actions/canonicalActions';
 
 export default function UniversalSearch() {
   const [query, setQuery] = useState('');
+  const [properties, setProperties] = useState<any[]>([]);
+  const [owners, setOwners] = useState<any[]>([]);
+  const [deals, setDeals] = useState<any[]>([]);
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
 
-  const filterResults = (items: any[]) => {
-    if (!query) return items;
-    return items.filter(item => 
-      item.title.toLowerCase().includes(query.toLowerCase()) ||
-      Object.values(item).some(val => typeof val === 'string' && val.toLowerCase().includes(query.toLowerCase()))
-    );
-  };
+  useEffect(() => {
+    async function load() {
+      const [pData, oData, dData] = await Promise.all([
+        getAllProperties(),
+        getCanonicalOwners(),
+        getCanonicalDeals(),
+      ]);
+      setProperties(pData);
+      setOwners(oData);
+      setDeals(dData);
+    }
+    load();
+  }, []);
 
-  const filteredProperties = filterResults(MOCK_RESULTS.properties);
-  const filteredContacts = filterResults(MOCK_RESULTS.contacts);
-  const filteredDocuments = filterResults(MOCK_RESULTS.documents);
-  const filteredDeals = filterResults(MOCK_RESULTS.deals);
+  const q = query.toLowerCase();
 
-  const hasResults = filteredProperties.length > 0 || filteredContacts.length > 0 || filteredDocuments.length > 0 || filteredDeals.length > 0;
+  const filteredProperties = properties.filter(p => 
+    !q || 
+    p.apn.toLowerCase().includes(q) || 
+    p.county.toLowerCase().includes(q) || 
+    p.state.toLowerCase().includes(q) || 
+    (p.ownerName && p.ownerName.toLowerCase().includes(q))
+  );
+
+  const filteredOwners = owners.filter(o =>
+    !q ||
+    o.name.toLowerCase().includes(q) ||
+    o.jurisdiction.toLowerCase().includes(q)
+  );
+
+  const filteredDeals = deals.filter(d =>
+    !q ||
+    d.apn.toLowerCase().includes(q) ||
+    d.county.toLowerCase().includes(q) ||
+    d.stage.toLowerCase().includes(q)
+  );
+
+  const hasResults = filteredProperties.length > 0 || filteredOwners.length > 0 || filteredDeals.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 flex flex-col h-screen overflow-hidden">
-      <div className="p-6 pb-0 shrink-0">
-        <h1 className="text-2xl font-bold text-white mb-6">Universal Search</h1>
+    <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col h-screen overflow-hidden font-sans">
+      <div className="p-6 pb-2 shrink-0">
+        <div className="flex items-center gap-2 mb-4">
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Search className="w-6 h-6 text-emerald-500" />
+            Universal Search & Canonical Index
+          </h1>
+          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            POSTGRESQL REAL-TIME
+          </span>
+        </div>
         
-        <div className="relative mb-6">
-          <Search className="w-6 h-6 absolute left-4 top-3 text-slate-400" />
+        <div className="relative max-w-3xl">
+          <Search className="w-5 h-5 absolute left-4 top-3.5 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Search properties, contacts, documents, deals..." 
-            className="w-full bg-slate-800 border-2 border-slate-700 rounded-lg py-3 pl-12 pr-4 text-lg text-white focus:outline-none focus:border-indigo-500 transition-colors shadow-lg"
+            placeholder="Search APN, County, State, Owner entity, or Stage across the system..." 
+            className="w-full bg-slate-900 border-2 border-slate-700/80 rounded-2xl py-3 pl-12 pr-10 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors shadow-2xl"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
           />
+          {query && (
+            <button 
+              onClick={() => setQuery('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden p-6 pt-2 gap-6">
+      <div className="flex-1 flex overflow-hidden p-6 pt-4 gap-6">
         {/* Results Area */}
         <div className="flex-1 overflow-y-auto pr-2 space-y-8">
           {!hasResults && query && (
-            <div className="text-center text-slate-400 py-12 bg-slate-800/50 rounded-lg border border-slate-700">
-              No results found for "{query}"
+            <div className="text-center text-slate-400 py-12 bg-slate-900/50 rounded-2xl border border-slate-800">
+              No canonical records matching "{query}"
             </div>
           )}
 
+          {/* Properties Section */}
           {filteredProperties.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
-                <MapPin className="w-4 h-4 mr-2" /> Properties
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-emerald-400" /> Canonical Properties ({filteredProperties.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {filteredProperties.map(prop => (
                   <div 
                     key={prop.id} 
-                    onClick={() => setSelectedResult(prop)}
-                    className={`bg-slate-800 border ${selectedResult?.id === prop.id ? 'border-indigo-500' : 'border-slate-700'} p-4 rounded-lg hover:border-indigo-400 cursor-pointer transition-colors`}
+                    onClick={() => setSelectedResult({ ...prop, type: 'PROPERTY' })}
+                    className={`bg-slate-900 border ${selectedResult?.id === prop.id ? 'border-emerald-500 ring-1 ring-emerald-500/40' : 'border-slate-800'} p-4 rounded-xl hover:border-emerald-500/50 cursor-pointer transition-all shadow-md`}
                   >
-                    <h3 className="font-medium text-white text-lg">{prop.title}</h3>
-                    <div className="text-sm text-slate-400 mt-1">{prop.apn} • {prop.county}</div>
-                    <div className="mt-2 flex justify-between items-center">
-                      <span className="text-xs bg-slate-700 px-2 py-1 rounded">{prop.acreage} ac</span>
-                      <span className="text-xs text-indigo-400">{prop.status}</span>
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-mono font-bold text-white text-base">{prop.apn}</h3>
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                        {prop.lifecycleStage}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-400">{prop.county} County, {prop.state} • Owner: {prop.ownerName}</div>
+                    <div className="mt-3 pt-2.5 border-t border-slate-800 flex justify-between items-center text-xs">
+                      <span className="font-semibold text-slate-200">{prop.acreage?.toFixed(1)} AC</span>
+                      <span className="font-bold text-emerald-400">
+                        {prop.estimatedMarketValue ? `$${prop.estimatedMarketValue.toLocaleString()}` : 'Underwriting'}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -92,74 +138,49 @@ export default function UniversalSearch() {
             </section>
           )}
 
-          {filteredContacts.length > 0 && (
+          {/* Owners Section */}
+          {filteredOwners.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
-                <User className="w-4 h-4 mr-2" /> Contacts
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <User className="w-4 h-4 text-indigo-400" /> Landowners & Sellers ({filteredOwners.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {filteredContacts.map(contact => (
+                {filteredOwners.map(owner => (
                   <div 
-                    key={contact.id}
-                    onClick={() => setSelectedResult(contact)}
-                    className={`bg-slate-800 border ${selectedResult?.id === contact.id ? 'border-indigo-500' : 'border-slate-700'} p-4 rounded-lg hover:border-indigo-400 cursor-pointer transition-colors flex items-center`}
+                    key={owner.id} 
+                    onClick={() => setSelectedResult({ ...owner, type: 'OWNER' })}
+                    className={`bg-slate-900 border ${selectedResult?.id === owner.id ? 'border-emerald-500' : 'border-slate-800'} p-4 rounded-xl hover:border-indigo-400 cursor-pointer transition-colors shadow-md`}
                   >
-                    <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg font-bold text-slate-300 mr-3">
-                      {contact.title.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-white">{contact.title}</h3>
-                      <div className="text-sm text-slate-400">{contact.role} • {contact.email}</div>
-                    </div>
+                    <div className="font-bold text-white text-base mb-1">{owner.name}</div>
+                    <div className="text-xs text-slate-400 mb-2">{owner.jurisdiction} • {owner.propertiesCount} Parcels Owned</div>
+                    <div className="text-[11px] font-mono text-emerald-400">{owner.email}</div>
                   </div>
                 ))}
               </div>
             </section>
           )}
 
-          {filteredDocuments.length > 0 && (
-            <section>
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
-                <FileText className="w-4 h-4 mr-2" /> Documents
-              </h2>
-              <div className="grid grid-cols-1 gap-2">
-                {filteredDocuments.map(doc => (
-                  <div 
-                    key={doc.id}
-                    onClick={() => setSelectedResult(doc)}
-                    className={`bg-slate-800 border ${selectedResult?.id === doc.id ? 'border-indigo-500' : 'border-slate-700'} p-3 rounded-lg hover:border-indigo-400 cursor-pointer transition-colors flex items-center justify-between`}
-                  >
-                    <div className="flex items-center">
-                      <FileText className="w-5 h-5 text-sky-400 mr-3" />
-                      <div>
-                        <h3 className="font-medium text-white">{doc.title}</h3>
-                        <div className="text-xs text-slate-400">{doc.date}</div>
-                      </div>
-                    </div>
-                    <span className="text-xs bg-slate-700 px-2 py-1 rounded">{doc.fileType}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
+          {/* Deals Section */}
           {filteredDeals.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center">
-                <Briefcase className="w-4 h-4 mr-2" /> Deals
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Briefcase className="w-4 h-4 text-amber-400" /> Pipeline Deals ({filteredDeals.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {filteredDeals.map(deal => (
                   <div 
-                    key={deal.id}
-                    onClick={() => setSelectedResult(deal)}
-                    className={`bg-slate-800 border ${selectedResult?.id === deal.id ? 'border-indigo-500' : 'border-slate-700'} p-4 rounded-lg hover:border-indigo-400 cursor-pointer transition-colors`}
+                    key={deal.id} 
+                    onClick={() => setSelectedResult({ ...deal, type: 'DEAL' })}
+                    className={`bg-slate-900 border ${selectedResult?.id === deal.id ? 'border-emerald-500' : 'border-slate-800'} p-4 rounded-xl hover:border-amber-400 cursor-pointer transition-colors shadow-md`}
                   >
-                    <h3 className="font-medium text-white">{deal.title}</h3>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="font-bold text-emerald-400">{deal.price}</span>
-                      <span className="text-xs bg-slate-700 px-2 py-1 rounded">{deal.status}</span>
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="font-bold text-white text-sm">{deal.title}</div>
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">
+                        {deal.stage}
+                      </span>
                     </div>
+                    <div className="text-xs text-slate-400">{deal.county}, {deal.state} • Score: {deal.dealScore}/100</div>
+                    <div className="mt-2 text-xs font-bold text-emerald-400">${deal.value.toLocaleString()}</div>
                   </div>
                 ))}
               </div>
@@ -167,38 +188,83 @@ export default function UniversalSearch() {
           )}
         </div>
 
-        {/* Detail Panel */}
+        {/* Selected Result Drilldown Panel */}
         {selectedResult && (
-          <div className="w-96 bg-slate-800 border border-slate-700 rounded-lg p-6 flex flex-col shrink-0 animate-in slide-in-from-right-4 duration-200">
-            <div className="flex justify-between items-start mb-6">
-              <div className="bg-indigo-900/30 text-indigo-400 px-2 py-1 rounded text-xs font-semibold mb-2 inline-block">
-                {selectedResult.type}
+          <aside className="w-80 md:w-96 bg-slate-900 border border-slate-800 rounded-2xl p-5 shrink-0 flex flex-col justify-between shadow-2xl h-fit animate-in slide-in-from-right-4">
+            <div>
+              <div className="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-emerald-400 tracking-wider">
+                    {selectedResult.type} RECORD
+                  </span>
+                  <h3 className="font-bold text-white text-base font-mono mt-0.5">
+                    {selectedResult.apn || selectedResult.name || selectedResult.title}
+                  </h3>
+                </div>
+                <button 
+                  onClick={() => setSelectedResult(null)}
+                  className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button onClick={() => setSelectedResult(null)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <h2 className="text-2xl font-bold text-white mb-6">{selectedResult.title}</h2>
-            
-            <div className="space-y-4 flex-1">
-              {Object.entries(selectedResult).map(([key, value]) => {
-                if (key === 'id' || key === 'title' || key === 'type') return null;
-                return (
-                  <div key={key} className="border-b border-slate-700/50 pb-3">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">{key}</div>
-                    <div className="text-white font-medium">{String(value)}</div>
+
+              <div className="space-y-3 text-xs mb-6">
+                <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/60 space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Jurisdiction</span>
+                    <span className="text-white font-medium">{selectedResult.county || selectedResult.jurisdiction}, {selectedResult.state}</span>
                   </div>
-                );
-              })}
+                  {selectedResult.acreage && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Acreage</span>
+                      <span className="text-white font-bold">{selectedResult.acreage} AC</span>
+                    </div>
+                  )}
+                  {selectedResult.estimatedMarketValue && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Market Value</span>
+                      <span className="text-emerald-400 font-bold">${selectedResult.estimatedMarketValue.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/40 text-[11px] text-slate-400 space-y-1">
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Canonical PostgreSQL Source of Truth
+                  </span>
+                  <div>Record ID: <span className="font-mono text-slate-300">{selectedResult.id}</span></div>
+                </div>
+              </div>
             </div>
-            
-            <div className="mt-6 pt-6 border-t border-slate-700">
-              <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md transition-colors flex items-center justify-center">
-                Go to {selectedResult.type} <ArrowRight className="w-4 h-4 ml-2" />
-              </button>
+
+            <div>
+              {selectedResult.type === 'PROPERTY' && (
+                <Link
+                  href={`/properties/${selectedResult.id}`}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all"
+                >
+                  Open Complete Property Profile <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+              {selectedResult.type === 'OWNER' && (
+                <Link
+                  href="/owners"
+                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all"
+                >
+                  Open Owner Registry <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+              {selectedResult.type === 'DEAL' && (
+                <Link
+                  href={`/properties/${selectedResult.propertyId || selectedResult.id}`}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all"
+                >
+                  Inspect Deal Profile <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
-          </div>
+          </aside>
         )}
       </div>
     </div>

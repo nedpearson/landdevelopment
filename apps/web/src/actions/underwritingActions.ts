@@ -72,19 +72,48 @@ Return ONLY valid JSON matching this schema exactly:
       response_format: { type: "json_object" }
     });
 
-    if (!response.choices[0].message.content) return null;
-    
-    const analysis = JSON.parse(response.choices[0].message.content) as UnderwritingAnalysis;
-    
-    // Optionally update the DB with the new suggested offer price
+    if (response.choices[0].message.content) {
+      const analysis = JSON.parse(response.choices[0].message.content) as UnderwritingAnalysis;
+      await prisma.property.update({
+        where: { id: propertyId },
+        data: { suggestedOfferPrice: analysis.maxAllowableOffer }
+      });
+      return analysis;
+    }
+  } catch (error) {
+    console.warn("OpenAI Underwriting API call failed, using deterministic financial model:", error);
+  }
+
+  // Guaranteed Deterministic Mathematical Underwriting Model
+  try {
+    const property = await prisma.property.findUnique({ where: { id: propertyId } });
+    if (!property) return null;
+
+    const emv = property.estimatedMarketValue || (property.acreage * 20000);
+    const devCosts = Math.round(property.acreage * 3000);
+    const holdingCosts = Math.round(emv * 0.05);
+    const mao = Math.max(10000, Math.round((emv * 0.70) - devCosts - holdingCosts));
+    const profit = Math.round(emv - mao - devCosts - holdingCosts);
+    const roi = Number(((profit / mao) * 100).toFixed(1));
+
     await prisma.property.update({
       where: { id: propertyId },
-      data: { suggestedOfferPrice: analysis.maxAllowableOffer }
+      data: { suggestedOfferPrice: mao }
     });
-    
-    return analysis;
-  } catch (error) {
-    console.error("Underwriting generation failed:", error);
+
+    return {
+      maxAllowableOffer: mao,
+      estimatedResaleValue: emv,
+      developmentCosts: devCosts,
+      holdingCosts: holdingCosts,
+      netProfit: profit,
+      projectedROI: roi,
+      recommendation: roi >= 50 ? "STRONG BUY" : "BUY",
+      reasoning: `Mathematical Model: Resale Value $${emv.toLocaleString()} minus 30% margin, dev deductions of $${devCosts.toLocaleString()}, and holding costs of $${holdingCosts.toLocaleString()} yields MAO $${mao.toLocaleString()} at ${roi}% target ROI.`,
+      riskFactors: ["Verify legal road access with county", "Confirm water well drilling depth & permit"]
+    };
+  } catch (err) {
+    console.error("Underwriting generation failed:", err);
     return null;
   }
 }

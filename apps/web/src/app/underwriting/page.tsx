@@ -252,19 +252,28 @@ export default function UnderwritingDashboard() {
                   <div className="text-sm font-semibold text-white mt-1">Owner of Record: {selectedProperty.ownerName}</div>
                 </div>
 
-                {/* Scenario Toggle */}
-                <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-950 border border-slate-800 text-xs">
-                  {(['CONSERVATIVE', 'BASE', 'AGGRESSIVE'] as const).map((sc) => (
-                    <button
-                      key={sc}
-                      onClick={() => setScenarioMode(sc)}
-                      className={`px-3 py-1 rounded-md font-semibold transition-colors ${
-                        scenarioMode === sc ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      {sc}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => router.push(`/properties/${selectedProperty.id}`)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-700"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5 text-emerald-400" /> View Property Profile
+                  </button>
+
+                  {/* Scenario Toggle */}
+                  <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-950 border border-slate-800 text-xs">
+                    {(['CONSERVATIVE', 'BASE', 'AGGRESSIVE'] as const).map((sc) => (
+                      <button
+                        key={sc}
+                        onClick={() => setScenarioMode(sc)}
+                        className={`px-3 py-1 rounded-md font-semibold transition-colors ${
+                          scenarioMode === sc ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {sc}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
