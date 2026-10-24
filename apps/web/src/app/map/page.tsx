@@ -105,6 +105,8 @@ export default function MapView() {
     }
   };
 
+  const [mobileTab, setMobileTab] = useState<'map' | 'list'>('map');
+
   const mapStyleUrl = mapStyleMode === 'satellite'
     ? 'mapbox://styles/mapbox/satellite-streets-v12'
     : 'mapbox://styles/mapbox/dark-v11';
@@ -112,19 +114,39 @@ export default function MapView() {
   return (
     <div className="h-screen flex flex-col bg-slate-950 text-slate-200 overflow-hidden font-sans">
       {/* Top Header & Search Bar */}
-      <header className="bg-slate-900 border-b border-slate-800 px-6 py-3 shrink-0 flex flex-wrap justify-between items-center z-10 gap-4">
+      <header className="bg-slate-900 border-b border-slate-800 px-4 md:px-6 py-2.5 shrink-0 flex flex-wrap justify-between items-center z-10 gap-3">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
             <Compass className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white leading-none">Land Explorer & GIS Intelligence</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Authoritative Parcel Boundaries & Multi-State Inventory</p>
+            <h1 className="text-base md:text-lg font-bold text-white leading-none">Land Explorer & GIS Intelligence</h1>
+            <p className="text-[11px] md:text-xs text-slate-400 mt-0.5">Authoritative Parcel Boundaries & Multi-State Inventory</p>
           </div>
         </div>
 
+        {/* Mobile View Toggle */}
+        <div className="flex md:hidden items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700 text-xs">
+          <button
+            onClick={() => setMobileTab('map')}
+            className={`px-3 py-1 rounded-md font-medium transition-all ${
+              mobileTab === 'map' ? 'bg-emerald-600 text-white' : 'text-slate-400'
+            }`}
+          >
+            Map
+          </button>
+          <button
+            onClick={() => setMobileTab('list')}
+            className={`px-3 py-1 rounded-md font-medium transition-all ${
+              mobileTab === 'list' ? 'bg-emerald-600 text-white' : 'text-slate-400'
+            }`}
+          >
+            List ({filteredProperties.length})
+          </button>
+        </div>
+
         {/* Region Quick Select */}
-        <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-lg border border-slate-700/60 text-xs">
+        <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-lg border border-slate-700/60 text-xs overflow-x-auto max-w-full">
           {[
             { id: 'ALL', label: 'All States' },
             { id: 'TX', label: 'Texas' },
@@ -137,7 +159,7 @@ export default function MapView() {
             <button
               key={r.id}
               onClick={() => handleRegionChange(r.id)}
-              className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-all ${
                 selectedRegion === r.id 
                   ? 'bg-emerald-600 text-white shadow-sm' 
                   : 'text-slate-400 hover:text-white hover:bg-slate-700'
@@ -149,7 +171,7 @@ export default function MapView() {
         </div>
 
         {/* Search Input */}
-        <div className="relative w-64 md:w-80">
+        <div className="relative w-full sm:w-64 md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -172,7 +194,7 @@ export default function MapView() {
       {/* Main Container */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left Sidebar: Properties in View */}
-        <aside className="w-80 md:w-96 bg-slate-900/95 border-r border-slate-800 flex flex-col z-10 shrink-0">
+        <aside className={`${mobileTab === 'list' ? 'flex' : 'hidden'} md:flex w-full md:w-96 bg-slate-900/95 border-r border-slate-800 flex-col z-10 shrink-0`}>
           <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
             <h2 className="font-semibold text-white text-sm flex items-center gap-2">
               <List className="w-4 h-4 text-emerald-400" /> 
@@ -351,7 +373,7 @@ export default function MapView() {
 
           {/* Selected Property Deep Drilldown Drawer */}
           {selectedProperty && (
-            <div className="absolute bottom-4 right-4 z-30 w-96 max-h-[85vh] bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-200 animate-in slide-in-from-bottom-4">
+            <div className="absolute inset-x-3 bottom-3 md:inset-x-auto md:right-4 md:bottom-4 z-30 md:w-96 max-h-[85vh] bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-200 animate-in slide-in-from-bottom-4">
               <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
                 <div>
                   <div className="flex items-center gap-2">

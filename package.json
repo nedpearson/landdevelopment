@@ -7,7 +7,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "audit:production": "tsx scripts/independent-production-audit.ts"
+    "audit:production": "tsx scripts/independent-production-audit.ts",
+    "certify:production": "tsx scripts/master-autonomous-certification.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
