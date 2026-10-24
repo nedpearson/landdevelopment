@@ -116,14 +116,14 @@ Respond accurately and concisely. Ground your answers ONLY in real records. If n
   }
 
   // Property & Underwriting queries
-  if (queryLower.includes("underwrite") || queryLower.includes("mao") || queryLower.includes("valuation") || queryLower.includes("formula")) {
+  if (queryLower.includes("underwrite") || queryLower.includes("mao") || queryLower.includes("valuation") || queryLower.includes("formula") || queryLower.includes("profit") || queryLower.includes("calculat")) {
     return {
-      message: `Underwriting Model Methodology:\n• Max Allowable Offer (MAO) = (Estimated Resale Value × 70%) - Development Costs - Holding Costs - Closing Expenses.\n• Standard flip target: 50% ROI.\n• Subdivision target: 100% ROI.\nYou can run exact calculations for any parcel in the Underwriting tab.`
+      message: `Underwriting Model Methodology:\n• Max Allowable Offer (MAO) = (Estimated Resale Value × 70%) - Development Costs - Holding Costs - Closing Expenses.\n• Target Developer Profit: Resale Value - MAO - Development Costs - Holding Costs.\n• Standard flip target: 50% ROI.\n• Subdivision target: 100% ROI.\nYou can run exact calculations for any parcel in the Underwriting tab.`
     };
   }
 
   // Pipeline Query
-  if (queryLower.includes("pipeline") || queryLower.includes("opportunities") || queryLower.includes("deal")) {
+  if (queryLower.includes("pipeline") || queryLower.includes("opportunities") || queryLower.includes("deal") || queryLower.includes("return")) {
     const deals = await prisma.property.findMany({
       where: { organizationId: 'org_default' },
       select: { apn: true, county: true, state: true, acreage: true, lifecycleStage: true, dealScore: true },
