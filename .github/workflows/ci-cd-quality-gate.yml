@@ -53,14 +53,14 @@ jobs:
 
       - name: Build Web Application
         env:
-          NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoibW9jay10ZXN0LXRva2VuIn0.test' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-mock-key' }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/land_intelligence' }}
         run: pnpm --filter @land-intelligence/web build
 
       - name: Run Independent Production Certification
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/land_intelligence' }}
+          NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN || 'pk.eyJ1IjoibW9jay10ZXN0LXRva2VuIn0.test' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-mock-key' }}
         run: pnpm exec tsx scripts/master-autonomous-certification.ts
